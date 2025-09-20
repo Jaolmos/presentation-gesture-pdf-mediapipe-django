@@ -23,32 +23,7 @@
     </script>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="{% url 'presentations:home' %}" class="text-xl font-bold text-primary">
-                        SlideMotion
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="{% url 'presentations:home' %}"
-                       class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
-                        Inicio
-                    </a>
-                    <a href="{% url 'presentations:upload' %}"
-                       class="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition">
-                        Subir PDF
-                    </a>
-                    <a href="{% url 'presentations:list' %}"
-                       class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
-                        Ver todas
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/header.html' %}
 
     <!-- Messages -->
     {% if messages %}
@@ -67,13 +42,6 @@
         {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <p class="text-center text-gray-500 text-sm">
-                SlideMotion - Control de presentaciones con gestos
-            </p>
-        </div>
-    </footer>
+    {% include 'includes/footer.html' %}
 </body>
 </html>
