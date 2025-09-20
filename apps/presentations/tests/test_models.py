@@ -1,3 +1,41 @@
+"""
+Tests para los modelos Presentation y Slide
+
+TUTORIAL RÁPIDO - Cómo usar estos tests:
+
+1. EJECUTAR TODOS LOS TESTS:
+   python -m pytest apps/presentations/tests/test_models.py -v
+
+2. EJECUTAR UN TEST ESPECÍFICO:
+   python -m pytest apps/presentations/tests/test_models.py::TestPresentationModel::test_create_presentation -v
+
+3. EJECUTAR TESTS DE UNA CLASE:
+   python -m pytest apps/presentations/tests/test_models.py::TestPresentationModel -v
+
+4. EJECUTAR CON COVERAGE:
+   python -m pytest apps/presentations/tests/test_models.py --cov=presentations --cov-report=html
+
+5. EJECUTAR EN MODO VERBOSE (más detalles):
+   python -m pytest apps/presentations/tests/test_models.py -vv
+
+6. EJECUTAR Y PARAR EN PRIMER FALLO:
+   python -m pytest apps/presentations/tests/test_models.py -x
+
+7. EJECUTAR TESTS QUE CONTIENEN UNA PALABRA:
+   python -m pytest apps/presentations/tests/test_models.py -k "presentation" -v
+
+ESTRUCTURA DE LOS TESTS:
+- TestPresentationModel: Tests para el modelo Presentation
+- TestSlideModel: Tests para el modelo Slide
+- Cada test verifica una funcionalidad específica
+- @pytest.mark.django_db permite acceso a la base de datos
+
+EJEMPLOS DE OUTPUT ESPERADO:
+✓ 15 tests pasando
+✓ Sin errores de importación
+✓ Base de datos de test creada/destruida automáticamente
+"""
+
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
