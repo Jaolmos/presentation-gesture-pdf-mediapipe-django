@@ -210,3 +210,46 @@ class TestPresentationUploadForm:
         form = PresentationUploadForm(data=form_data, files=file_data)
         assert form.is_valid()
         assert form.cleaned_data['title'] == 'Mi Presentación'
+
+
+# ===============================================================================
+# TESTS DE FORMULARIOS - INSTRUCCIONES DE USO
+# ===============================================================================
+#
+# DESCRIPCIÓN:
+# Este archivo contiene tests para el formulario PresentationUploadForm
+# que valida la carga de archivos PDF y campos del formulario.
+#
+# EJECUTAR TESTS:
+# 1. EJECUTAR SOLO TESTS DE FORMULARIOS:
+#    python -m pytest apps/presentations/tests/test_forms.py -v
+#
+# 2. EJECUTAR UN TEST ESPECÍFICO:
+#    python -m pytest apps/presentations/tests/test_forms.py::TestPresentationUploadForm::test_form_valid_data -v
+#
+# 3. EJECUTAR TODOS LOS TESTS DE LA APP:
+#    python -m pytest apps/presentations/tests/ -v
+#
+# ESTRUCTURA DE LOS TESTS:
+# - TestPresentationUploadForm: Tests para el formulario de carga de presentaciones
+# - Cada test verifica una validación específica del formulario
+# - @pytest.mark.django_db permite acceso a la base de datos para el formulario
+#
+# TIPOS DE VALIDACIÓN TESTADAS:
+# ✓ Datos válidos (título + PDF válido)
+# ✓ Título faltante, vacío o muy corto
+# ✓ Archivo faltante, tipo incorrecto, extensión incorrecta
+# ✓ Archivo demasiado grande (>50MB)
+# ✓ Longitud máxima del título (200 caracteres)
+# ✓ Limpieza de espacios en blanco en el título
+#
+# EJEMPLOS DE OUTPUT ESPERADO:
+# ✓ 10 tests pasando
+# ✓ Sin errores de validación inesperados
+# ✓ Archivos PDF simulados creados correctamente
+#
+# COMANDOS ÚTILES ADICIONALES:
+# - Verificar qué tests existen: python -m pytest apps/presentations/tests/test_forms.py --collect-only
+# - Ver detalles de fallos: python -m pytest apps/presentations/tests/test_forms.py -v -s
+#
+# ===============================================================================

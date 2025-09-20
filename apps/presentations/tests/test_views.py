@@ -333,3 +333,57 @@ class TestPresentationViews:
         url = reverse('presentations:list')
         response = self.client.get(url)
         assert 'title' in response.context
+
+
+# ===============================================================================
+# TESTS DE VISTAS - INSTRUCCIONES DE USO
+# ===============================================================================
+#
+# DESCRIPCIÓN:
+# Este archivo contiene tests para todas las vistas de la aplicación presentations:
+# home, upload, detail, list con sus funcionalidades de paginación, filtros y búsqueda.
+#
+# EJECUTAR TESTS:
+# 1. EJECUTAR SOLO TESTS DE VISTAS:
+#    python -m pytest apps/presentations/tests/test_views.py -v
+#
+# 2. EJECUTAR UN TEST ESPECÍFICO:
+#    python -m pytest apps/presentations/tests/test_views.py::TestPresentationViews::test_home_view_no_presentations -v
+#
+# 3. EJECUTAR TODOS LOS TESTS DE LA APP:
+#    python -m pytest apps/presentations/tests/ -v
+#
+# ESTRUCTURA DE LOS TESTS:
+# - TestPresentationViews: Tests para todas las vistas de presentaciones
+# - setup_method(): Configuración del cliente de test antes de cada test
+# - @pytest.mark.django_db permite acceso a la base de datos
+#
+# VISTAS TESTADAS:
+# ✓ home: Lista principal con paginación (10 items por página)
+# ✓ upload: GET (mostrar formulario) y POST (procesar carga)
+# ✓ detail: Mostrar presentación individual con slides
+# ✓ list: Lista completa con filtros de búsqueda y conversión
+# ✓ Manejo de errores (404, formularios inválidos)
+# ✓ Mensajes de éxito/error
+# ✓ Paginación en vistas list y home
+#
+# FUNCIONALIDADES TESTADAS:
+# ✓ Vistas sin datos (estados vacíos)
+# ✓ Vistas con datos (múltiples presentaciones)
+# ✓ Filtros combinados (búsqueda + estado de conversión)
+# ✓ Respuestas HTTP correctas (200, 302, 404)
+# ✓ Contexto de templates (variables disponibles)
+# ✓ Redirecciones después de POST exitoso
+#
+# EJEMPLOS DE OUTPUT ESPERADO:
+# ✓ 16 tests pasando
+# ✓ Base de datos de test creada/destruida automáticamente
+# ✓ Presentaciones y slides de prueba creados según necesidad
+# ✓ Archivos PDF simulados para tests de upload
+#
+# COMANDOS ÚTILES ADICIONALES:
+# - Ver qué tests existen: python -m pytest apps/presentations/tests/test_views.py --collect-only
+# - Ejecutar tests con salida detallada: python -m pytest apps/presentations/tests/test_views.py -v -s
+# - Ejecutar solo tests que fallan: python -m pytest apps/presentations/tests/test_views.py --lf
+#
+# ===============================================================================
