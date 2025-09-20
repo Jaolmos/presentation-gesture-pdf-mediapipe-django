@@ -1,7 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
-from presentations.models import Presentation, Slide
+from apps.presentations.models import Presentation, Slide
 
 
 @pytest.mark.django_db
