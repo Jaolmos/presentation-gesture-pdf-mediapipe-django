@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from .models import Presentation
 from .forms import PresentationUploadForm
+from .services import PDFProcessor, PDFConversionError
 
 
 def home(request):
@@ -30,11 +31,24 @@ def upload_presentation(request):
         if form.is_valid():
             presentation = form.save()
 
-            messages.success(
-                request,
-                f'Presentación "{presentation.title}" cargada exitosamente. '
-                f'Archivo: {presentation.get_filename()}'
-            )
+            # Intentar conversión inmediata del PDF
+            try:
+                slides = PDFProcessor.convert_pdf_to_images(presentation)
+                messages.success(
+                    request,
+                    f'Presentación "{presentation.title}" cargada y convertida exitosamente. '
+                    f'{len(slides)} slides creados.'
+                )
+            except PDFConversionError as e:
+                messages.warning(
+                    request,
+                    f'Presentación "{presentation.title}" cargada, pero hubo un error en la conversión: {str(e)}'
+                )
+            except Exception as e:
+                messages.warning(
+                    request,
+                    f'Presentación "{presentation.title}" cargada, pero hubo un error inesperado: {str(e)}'
+                )
 
             return redirect('presentations:presentation_detail', pk=presentation.pk)
 

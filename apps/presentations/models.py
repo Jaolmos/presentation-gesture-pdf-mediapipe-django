@@ -58,6 +58,14 @@ class Presentation(models.Model):
             return Path(self.pdf_file.name).name
         return ""
 
+    def can_be_converted(self):
+        """Verifica si la presentación puede ser convertida"""
+        return bool(self.pdf_file and not self.is_converted)
+
+    def needs_reconversion(self):
+        """Verifica si la presentación necesita reconversión"""
+        return bool(self.pdf_file and self.is_converted and self.slides.count() == 0)
+
 
 class Slide(models.Model):
     """Modelo para slides individuales de una presentación"""
