@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SlideMotion{% endblock %}</title>
+
+    <!-- Tailwind CSS desde CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Configuración personalizada de Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#64748b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{% url 'presentations:home' %}" class="text-xl font-bold text-primary">
+                        SlideMotion
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'presentations:home' %}"
+                       class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                        Inicio
+                    </a>
+                    <a href="{% url 'presentations:upload' %}"
+                       class="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition">
+                        Subir PDF
+                    </a>
+                    <a href="{% url 'presentations:list' %}"
+                       class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                        Ver todas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="{% if message.tags == 'success' %}bg-green-100 border border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %} px-4 py-3 rounded mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <p class="text-center text-gray-500 text-sm">
+                SlideMotion - Control de presentaciones con gestos
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

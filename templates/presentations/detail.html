@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ presentation.title }} - SlideMotion{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    {{ presentation.title }}
+                </h1>
+                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>Creado: {{ presentation.created_at|date:"d/m/Y H:i" }}</span>
+                    {% if presentation.is_converted %}
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                            ✓ Convertido
+                        </span>
+                    {% else %}
+                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+                            ⏳ Pendiente conversión
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'presentations:home' %}"
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+                    ← Volver
+                </a>
+                {% if presentation.is_converted and presentation.total_slides > 0 %}
+                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-medium">
+                        🎯 Iniciar presentación
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Información de la presentación -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    Información
+                </h3>
+
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Archivo</dt>
+                        <dd class="text-sm text-gray-900">
+                            {{ presentation.get_filename|default:"Sin archivo" }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Tamaño</dt>
+                        <dd class="text-sm text-gray-900">
+                            {{ presentation.file_size_mb }} MB
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Total de slides</dt>
+                        <dd class="text-sm text-gray-900">
+                            {{ presentation.total_slides }}
+                            {% if presentation.total_slides > 0 %}
+                                página{% if presentation.total_slides != 1 %}s{% endif %}
+                            {% else %}
+                                (Pendiente conversión)
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Estado</dt>
+                        <dd class="text-sm">
+                            {% if presentation.is_converted %}
+                                <span class="text-green-600 font-medium">✓ Listo para presentar</span>
+                            {% else %}
+                                <span class="text-yellow-600 font-medium">⏳ Procesando...</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Última actualización</dt>
+                        <dd class="text-sm text-gray-900">
+                            {{ presentation.updated_at|date:"d/m/Y H:i" }}
+                        </dd>
+                    </div>
+                </dl>
+
+                {% if presentation.pdf_file %}
+                    <div class="mt-6 pt-6 border-t">
+                        <a href="{{ presentation.pdf_file.url }}"
+                           target="_blank"
+                           class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition text-center block">
+                            📄 Ver PDF original
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Slides preview -->
+        <div class="lg:col-span-2">
+            {% if presentation.is_converted and slides %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        Vista previa de slides ({{ slides.count }})
+                    </h3>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {% for slide in slides %}
+                            <div class="group relative">
+                                <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden">
+                                    {% if slide.image_file %}
+                                        <img src="{{ slide.image_file.url }}"
+                                             alt="Slide {{ slide.slide_number }}"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
+                                             onclick="openSlideModal('{{ slide.image_file.url }}', {{ slide.slide_number }})">
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-2 rounded-b-lg">
+                                    Slide {{ slide.slide_number }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% elif presentation.is_converted and not slides %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">
+                            No hay slides disponibles
+                        </h3>
+                        <p class="text-gray-600">
+                            La presentación está marcada como convertida pero no se encontraron slides.
+                        </p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="text-center py-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">
+                            Procesando presentación...
+                        </h3>
+                        <p class="text-gray-600">
+                            Estamos convirtiendo tu PDF a slides. Esto puede tomar unos momentos.
+                        </p>
+                        <button onclick="location.reload()"
+                                class="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition text-sm">
+                            🔄 Actualizar estado
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal para ver slide completo -->
+    <div id="slideModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain">
+            <button onclick="closeSlideModal()"
+                    class="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl font-bold">
+                ×
+            </button>
+            <div id="modalSlideNumber" class="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openSlideModal(imageUrl, slideNumber) {
+            const modal = document.getElementById('slideModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalSlideNumber = document.getElementById('modalSlideNumber');
+
+            modalImage.src = imageUrl;
+            modalImage.alt = `Slide ${slideNumber}`;
+            modalSlideNumber.textContent = `Slide ${slideNumber}`;
+            modal.classList.remove('hidden');
+
+            // Cerrar con ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSlideModal();
+                }
+            });
+        }
+
+        function closeSlideModal() {
+            const modal = document.getElementById('slideModal');
+            modal.classList.add('hidden');
+        }
+
+        // Cerrar modal clickeando fuera de la imagen
+        document.getElementById('slideModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSlideModal();
+            }
+        });
+    </script>
+{% endblock %}

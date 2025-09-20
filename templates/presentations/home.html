@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - SlideMotion{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            Bienvenido a SlideMotion
+        </h1>
+        <p class="text-xl text-gray-600 mb-8">
+            Controla tus presentaciones PDF con gestos de mano
+        </p>
+        <a href="{% url 'presentations:upload' %}"
+           class="bg-primary text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition inline-block">
+            Subir mi primera presentación
+        </a>
+    </div>
+
+    <!-- Presentaciones recientes -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
+                Presentaciones recientes
+            </h2>
+            {% if total_presentations > 0 %}
+                <a href="{% url 'presentations:list' %}"
+                   class="text-primary hover:text-blue-700 font-medium">
+                    Ver todas ({{ total_presentations }})
+                </a>
+            {% endif %}
+        </div>
+
+        {% if presentations %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for presentation in presentations %}
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 truncate">
+                                {{ presentation.title }}
+                            </h3>
+                            {% if presentation.is_converted %}
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                    Convertido
+                                </span>
+                            {% else %}
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                                    Pendiente
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-sm text-gray-600 mb-4">
+                            <p><strong>Archivo:</strong> {{ presentation.get_filename|default:"Sin archivo" }}</p>
+                            <p><strong>Tamaño:</strong> {{ presentation.file_size_mb }} MB</p>
+                            <p><strong>Slides:</strong> {{ presentation.total_slides }}</p>
+                            <p><strong>Creado:</strong> {{ presentation.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+
+                        <div class="flex space-x-2">
+                            <a href="{% url 'presentations:presentation_detail' presentation.pk %}"
+                               class="bg-primary text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition flex-1 text-center">
+                                Ver detalles
+                            </a>
+                            {% if presentation.is_converted and presentation.total_slides > 0 %}
+                                <button class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition">
+                                    Presentar
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginación -->
+            {% if presentations.has_other_pages %}
+                <div class="flex justify-center mt-8">
+                    <nav class="flex space-x-2">
+                        {% if presentations.has_previous %}
+                            <a href="?page=1" class="px-3 py-2 text-sm text-gray-600 hover:text-primary">Primera</a>
+                            <a href="?page={{ presentations.previous_page_number }}" class="px-3 py-2 text-sm text-gray-600 hover:text-primary">Anterior</a>
+                        {% endif %}
+
+                        <span class="px-3 py-2 text-sm bg-primary text-white rounded">
+                            {{ presentations.number }} de {{ presentations.paginator.num_pages }}
+                        </span>
+
+                        {% if presentations.has_next %}
+                            <a href="?page={{ presentations.next_page_number }}" class="px-3 py-2 text-sm text-gray-600 hover:text-primary">Siguiente</a>
+                            <a href="?page={{ presentations.paginator.num_pages }}" class="px-3 py-2 text-sm text-gray-600 hover:text-primary">Última</a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="mb-4">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                    No hay presentaciones aún
+                </h3>
+                <p class="text-gray-600 mb-4">
+                    Sube tu primer archivo PDF para comenzar
+                </p>
+                <a href="{% url 'presentations:upload' %}"
+                   class="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">
+                    Subir presentación
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
