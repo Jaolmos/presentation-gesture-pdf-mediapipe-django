@@ -153,6 +153,9 @@ Thumbs.db
 # Archivos específicos del proyecto
 resumen.md
 
+# Claude Code configuration
+.claude/
+
 # Node modules (for frontend tools)
 node_modules/
 npm-debug.log
