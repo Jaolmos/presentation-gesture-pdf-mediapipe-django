@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from pathlib import Path
+import os
 
 
 class Presentation(models.Model):
@@ -65,6 +66,32 @@ class Presentation(models.Model):
     def needs_reconversion(self):
         """Verifica si la presentación necesita reconversión"""
         return bool(self.pdf_file and self.is_converted and self.slides.count() == 0)
+
+    def delete_files(self):
+        """Elimina todos los archivos asociados (PDF y slides)"""
+        # Eliminar archivo PDF
+        if self.pdf_file:
+            try:
+                if os.path.exists(self.pdf_file.path):
+                    os.remove(self.pdf_file.path)
+            except (OSError, ValueError):
+                # Archivo ya eliminado o path inválido
+                pass
+
+        # Eliminar archivos de slides
+        for slide in self.slides.all():
+            if slide.image_file:
+                try:
+                    if os.path.exists(slide.image_file.path):
+                        os.remove(slide.image_file.path)
+                except (OSError, ValueError):
+                    # Archivo ya eliminado o path inválido
+                    pass
+
+    def delete(self, *args, **kwargs):
+        """Override delete para limpiar archivos antes de eliminar el registro"""
+        self.delete_files()
+        super().delete(*args, **kwargs)
 
 
 class Slide(models.Model):

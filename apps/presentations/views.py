@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.http import Http404
 from .models import Presentation
 from .forms import PresentationUploadForm
 from .services import PDFProcessor, PDFConversionError
@@ -109,3 +110,32 @@ def presentation_list(request):
     }
 
     return render(request, 'presentations/list.html', context)
+
+
+def delete_presentation(request, pk):
+    """Vista para eliminar una presentación con confirmación"""
+    presentation = get_object_or_404(Presentation, pk=pk)
+
+    if request.method == 'POST':
+        # Confirmar eliminación
+        presentation_title = presentation.title
+        try:
+            presentation.delete()
+            messages.success(
+                request,
+                f'Presentación "{presentation_title}" eliminada exitosamente.'
+            )
+            return redirect('presentations:home')
+        except Exception as e:
+            messages.error(
+                request,
+                f'Error al eliminar la presentación: {str(e)}'
+            )
+            return redirect('presentations:presentation_detail', pk=pk)
+
+    context = {
+        'presentation': presentation,
+        'title': f'Eliminar "{presentation.title}"'
+    }
+
+    return render(request, 'presentations/delete_confirm.html', context)

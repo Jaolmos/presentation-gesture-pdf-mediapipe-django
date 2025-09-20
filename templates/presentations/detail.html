@@ -92,11 +92,15 @@
                 </dl>
 
                 {% if presentation.pdf_file %}
-                    <div class="mt-6 pt-6 border-t">
+                    <div class="mt-6 pt-6 border-t space-y-3">
                         <a href="{{ presentation.pdf_file.url }}"
                            target="_blank"
                            class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition text-center block">
                             📄 Ver PDF original
+                        </a>
+                        <a href="{% url 'presentations:delete_presentation' presentation.pk %}"
+                           class="w-full bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 transition text-center block">
+                            🗑️ Eliminar presentación
                         </a>
                     </div>
                 {% endif %}

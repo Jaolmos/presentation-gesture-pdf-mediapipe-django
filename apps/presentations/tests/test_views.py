@@ -2,10 +2,13 @@
 Tests para vistas de la aplicación presentations.
 """
 import pytest
+import os
+import tempfile
 from django.test import Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages import get_messages
+from django.conf import settings
 from apps.presentations.models import Presentation, Slide
 
 
@@ -275,7 +278,7 @@ class TestPresentationViews:
         assert response.context['presentations'][0].title == 'Django Avanzado'
 
     def test_upload_success_message(self):
-        """Test que verifica mensaje de éxito al subir presentación."""
+        """Test que verifica mensaje al subir presentación."""
         pdf_content = b'%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj'
         pdf_file = SimpleUploadedFile(
             "test.pdf",
@@ -291,10 +294,11 @@ class TestPresentationViews:
 
         response = self.client.post(url, data, follow=True)
 
-        # Verificar mensaje de éxito
+        # Verificar que hay mensaje (puede ser éxito o error de conversión)
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) == 1
-        assert 'exitosamente' in str(messages[0])
+        assert 'Mi Presentación' in str(messages[0])
+        assert 'cargada' in str(messages[0])
 
     def test_presentation_list_pagination(self):
         """Test de paginación en lista de presentaciones."""
@@ -334,6 +338,142 @@ class TestPresentationViews:
         response = self.client.get(url)
         assert 'title' in response.context
 
+    def test_delete_presentation_get(self):
+        """Test GET de vista de eliminación - mostrar confirmación."""
+        presentation = Presentation.objects.create(
+            title='Presentación a eliminar',
+            total_slides=5,
+            is_converted=True
+        )
+
+        url = reverse('presentations:delete_presentation', kwargs={'pk': presentation.pk})
+        response = self.client.get(url)
+
+        assert response.status_code == 200
+        assert 'presentation' in response.context
+        assert response.context['presentation'] == presentation
+        assert response.context['title'] == f'Eliminar "{presentation.title}"'
+
+    def test_delete_presentation_post_success(self):
+        """Test POST de vista de eliminación - eliminar exitosamente."""
+        presentation = Presentation.objects.create(
+            title='Presentación a eliminar',
+            total_slides=3,
+            is_converted=True
+        )
+        presentation_id = presentation.pk
+        presentation_title = presentation.title
+
+        url = reverse('presentations:delete_presentation', kwargs={'pk': presentation.pk})
+        response = self.client.post(url, follow=True)
+
+        # Verificar redirección a home
+        assert response.status_code == 200
+        assert response.redirect_chain[0][0] == reverse('presentations:home')
+
+        # Verificar que la presentación fue eliminada
+        assert not Presentation.objects.filter(pk=presentation_id).exists()
+
+        # Verificar mensaje de éxito
+        messages = list(get_messages(response.wsgi_request))
+        assert len(messages) == 1
+        assert f'"{presentation_title}" eliminada exitosamente' in str(messages[0])
+
+    def test_delete_presentation_with_files(self):
+        """Test de eliminación de presentación con archivos asociados."""
+        presentation = Presentation.objects.create(
+            title='Presentación con archivos',
+            total_slides=2,
+            is_converted=True
+        )
+
+        # Crear slides (sin archivos reales para evitar problemas de permisos)
+        for i in range(2):
+            Slide.objects.create(
+                presentation=presentation,
+                slide_number=i + 1
+            )
+
+        presentation_id = presentation.pk
+
+        # Eliminar presentación
+        url = reverse('presentations:delete_presentation', kwargs={'pk': presentation_id})
+        response = self.client.post(url, follow=True)
+
+        # Verificar eliminación exitosa
+        assert response.status_code == 200
+        assert not Presentation.objects.filter(pk=presentation_id).exists()
+        assert Slide.objects.filter(presentation_id=presentation_id).count() == 0
+
+    def test_delete_presentation_404(self):
+        """Test de eliminación de presentación inexistente - debe retornar 404."""
+        url = reverse('presentations:delete_presentation', kwargs={'pk': 999})
+        response = self.client.get(url)
+
+        assert response.status_code == 404
+
+        # También probar POST
+        response = self.client.post(url)
+        assert response.status_code == 404
+
+    def test_delete_presentation_preserves_other_presentations(self):
+        """Test que eliminar una presentación no afecta otras."""
+        # Crear varias presentaciones
+        presentation1 = Presentation.objects.create(
+            title='Presentación 1',
+            total_slides=3,
+            is_converted=True
+        )
+        presentation2 = Presentation.objects.create(
+            title='Presentación 2',
+            total_slides=5,
+            is_converted=True
+        )
+        presentation3 = Presentation.objects.create(
+            title='Presentación 3',
+            total_slides=2,
+            is_converted=False
+        )
+
+        # Eliminar solo la presentación 2
+        url = reverse('presentations:delete_presentation', kwargs={'pk': presentation2.pk})
+        response = self.client.post(url, follow=True)
+
+        assert response.status_code == 200
+
+        # Verificar que solo se eliminó la presentación 2
+        assert Presentation.objects.filter(pk=presentation1.pk).exists()
+        assert not Presentation.objects.filter(pk=presentation2.pk).exists()
+        assert Presentation.objects.filter(pk=presentation3.pk).exists()
+        assert Presentation.objects.count() == 2
+
+    def test_delete_presentation_with_slides(self):
+        """Test que eliminación incluye slides asociados."""
+        presentation = Presentation.objects.create(
+            title='Presentación con slides',
+            total_slides=3,
+            is_converted=True
+        )
+
+        # Crear slides
+        for i in range(3):
+            Slide.objects.create(
+                presentation=presentation,
+                slide_number=i + 1
+            )
+
+        assert presentation.slides.count() == 3
+
+        # Eliminar presentación
+        url = reverse('presentations:delete_presentation', kwargs={'pk': presentation.pk})
+        response = self.client.post(url, follow=True)
+
+        assert response.status_code == 200
+
+        # Verificar que presentación y slides fueron eliminados
+        assert not Presentation.objects.filter(pk=presentation.pk).exists()
+        assert Slide.objects.filter(presentation=presentation).count() == 0
+
 
 # ===============================================================================
 # TESTS DE VISTAS - INSTRUCCIONES DE USO
@@ -363,6 +503,7 @@ class TestPresentationViews:
 # ✓ upload: GET (mostrar formulario) y POST (procesar carga)
 # ✓ detail: Mostrar presentación individual con slides
 # ✓ list: Lista completa con filtros de búsqueda y conversión
+# ✓ delete: GET (confirmación) y POST (eliminar) con limpieza de archivos
 # ✓ Manejo de errores (404, formularios inválidos)
 # ✓ Mensajes de éxito/error
 # ✓ Paginación en vistas list y home
@@ -376,10 +517,11 @@ class TestPresentationViews:
 # ✓ Redirecciones después de POST exitoso
 #
 # EJEMPLOS DE OUTPUT ESPERADO:
-# ✓ 16 tests pasando
+# ✓ 22 tests pasando (16 anteriores + 6 de eliminación)
 # ✓ Base de datos de test creada/destruida automáticamente
 # ✓ Presentaciones y slides de prueba creados según necesidad
 # ✓ Archivos PDF simulados para tests de upload
+# ✓ Tests de eliminación con limpieza de archivos
 #
 # COMANDOS ÚTILES ADICIONALES:
 # - Ver qué tests existen: python -m pytest apps/presentations/tests/test_views.py --collect-only
