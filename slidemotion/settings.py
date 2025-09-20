@@ -35,12 +35,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Django Built-in Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party Apps
+    # (Agregar aquí dependencias externas cuando las instalemos)
+
+    # Local Apps
     'apps.presentations',
 ]
 
