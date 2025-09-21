@@ -94,6 +94,11 @@
              src="{{ current_slide.image_file.url }}"
              alt="Slide {{ current_slide_number }}"
              class="max-h-full max-w-full object-contain slide-transition">
+
+        <!-- Indicador de número de slide (siempre visible) -->
+        <div id="slide-indicator" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-medium z-50">
+            <span id="indicator-current">{{ current_slide_number }}</span> / <span id="indicator-total">{{ total_slides }}</span>
+        </div>
     </div>
 
     <!-- Controles Overlay (se ocultan automáticamente) -->
@@ -273,6 +278,12 @@
                 currentSlideImg.alt = `Slide ${slideData.slide_number}`;
                 currentSlideNumber = slideData.slide_number;
                 currentSlideNumberEl.textContent = slideData.slide_number;
+
+                // Actualizar indicador permanente
+                const indicatorCurrent = document.getElementById('indicator-current');
+                if (indicatorCurrent) {
+                    indicatorCurrent.textContent = slideData.slide_number;
+                }
 
                 // Fade in
                 currentSlideImg.style.opacity = '1';
