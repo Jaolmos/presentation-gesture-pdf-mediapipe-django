@@ -22,11 +22,11 @@ class GestureDetector {
     }
 
     /**
-     * Inicializa MediaPipe PoseLandmarker
+     * Inicializa MediaPipe tasks-vision PoseLandmarker
      */
     async initialize() {
         try {
-            console.log('Inicializando MediaPipe PoseLandmarker...');
+            console.log('Inicializando MediaPipe tasks-vision PoseLandmarker...');
 
             // Verificar que MediaPipe esté disponible
             if (typeof MediaPipe === 'undefined') {
@@ -149,7 +149,7 @@ class GestureDetector {
             return;
         }
 
-        // Landmarks de brazos (según MediaPipe pose)
+        // Landmarks de brazos (según MediaPipe tasks-vision)
         const leftShoulder = landmarks[11];   // Hombro izquierdo
         const rightShoulder = landmarks[12];  // Hombro derecho
         const leftElbow = landmarks[13];      // Codo izquierdo
