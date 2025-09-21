@@ -38,7 +38,7 @@ def home_content(request):
         'total_presentations': presentations.count(),
     }
 
-    return render(request, 'presentations/home_content.html', context)
+    return render(request, 'presentations/partials/home_content.html', context)
 
 
 def upload_presentation(request):
@@ -115,7 +115,7 @@ def upload_presentation_htmx(request):
                 'message': conversion_message,
                 'status': conversion_status
             }
-            return render(request, 'presentations/upload_result.html', context)
+            return render(request, 'presentations/partials/upload_result.html', context)
 
         else:
             # Devolver formulario con errores
@@ -123,7 +123,7 @@ def upload_presentation_htmx(request):
                 'form': form,
                 'success': False
             }
-            return render(request, 'presentations/upload_form.html', context)
+            return render(request, 'presentations/partials/upload_form.html', context)
 
     # GET request - devolver formulario limpio
     form = PresentationUploadForm()
@@ -131,7 +131,7 @@ def upload_presentation_htmx(request):
         'form': form,
         'success': None
     }
-    return render(request, 'presentations/upload_form.html', context)
+    return render(request, 'presentations/partials/upload_form.html', context)
 
 
 def presentation_detail(request, pk):
@@ -202,7 +202,7 @@ def presentation_list_content(request):
         'converted_filter': converted_filter,
     }
 
-    return render(request, 'presentations/list_content.html', context)
+    return render(request, 'presentations/partials/list_content.html', context)
 
 
 def delete_presentation(request, pk):
@@ -247,20 +247,20 @@ def delete_presentation_htmx(request, pk):
                 'success': True,
                 'message': f'Presentación "{presentation_title}" eliminada exitosamente.'
             }
-            return render(request, 'presentations/delete_result.html', context)
+            return render(request, 'presentations/partials/delete_result.html', context)
         except Exception as e:
             context = {
                 'success': False,
                 'message': f'Error al eliminar la presentación: {str(e)}',
                 'presentation': presentation
             }
-            return render(request, 'presentations/delete_confirm_content.html', context)
+            return render(request, 'presentations/partials/delete_confirm_content.html', context)
 
     # GET request - mostrar confirmación
     context = {
         'presentation': presentation,
     }
-    return render(request, 'presentations/delete_confirm_content.html', context)
+    return render(request, 'presentations/partials/delete_confirm_content.html', context)
 
 
 def camera_config(request):
