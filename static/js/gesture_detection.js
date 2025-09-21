@@ -9,7 +9,11 @@ class GestureDetector {
         this.isInitialized = false;
         this.isDetecting = false;
         this.lastGestureTime = 0;
-        this.gestureThreshold = 300; // ms entre gestos
+        this.gestureThreshold = 1500; // ms entre gestos (1.5 segundos para evitar spam)
+
+        // Estado para evitar detecciones repetidas
+        this.lastGestureType = null;
+        this.armNeutralRequired = false;
 
         // Configuración de sensibilidad
         this.armRaisedThreshold = 0.3; // Diferencia Y entre hombro y codo
@@ -154,34 +158,67 @@ class GestureDetector {
         const rightShoulder = landmarks[12];  // Hombro derecho
         const leftElbow = landmarks[13];      // Codo izquierdo
         const rightElbow = landmarks[14];     // Codo derecho
+        const leftWrist = landmarks[15];      // Muñeca izquierda
+        const rightWrist = landmarks[16];     // Muñeca derecha
 
-        // Verificar si todos los landmarks están presentes
+        // Verificar si los landmarks esenciales están presentes
         if (!leftShoulder || !rightShoulder || !leftElbow || !rightElbow) {
             return;
         }
 
-        // Detectar brazo derecho levantado
-        const rightArmRaised = this.isArmRaised(rightShoulder, rightElbow);
+        // Detectar brazo derecho levantado (con muñeca si está disponible)
+        const rightArmRaised = this.isArmRaised(rightShoulder, rightElbow, rightWrist);
 
-        // Detectar brazo izquierdo levantado
-        const leftArmRaised = this.isArmRaised(leftShoulder, leftElbow);
+        // Detectar brazo izquierdo levantado (con muñeca si está disponible)
+        const leftArmRaised = this.isArmRaised(leftShoulder, leftElbow, leftWrist);
 
-        // Procesar gestos detectados
-        if (rightArmRaised && !leftArmRaised) {
-            this.triggerGesture('next_slide', 'Brazo derecho levantado');
-        } else if (leftArmRaised && !rightArmRaised) {
-            this.triggerGesture('prev_slide', 'Brazo izquierdo levantado');
+        // Estado neutral: ningún brazo levantado
+        const neutralState = !rightArmRaised && !leftArmRaised;
+
+        // Si estamos en posición neutral, permitir nuevos gestos
+        if (neutralState && this.armNeutralRequired) {
+            this.armNeutralRequired = false;
+            this.lastGestureType = null;
+        }
+
+        // Procesar gestos detectados solo si no requerimos posición neutral
+        if (!this.armNeutralRequired) {
+            if (rightArmRaised && !leftArmRaised && this.lastGestureType !== 'next_slide') {
+                this.triggerGesture('next_slide', 'Brazo derecho levantado');
+                this.armNeutralRequired = true;
+            } else if (leftArmRaised && !rightArmRaised && this.lastGestureType !== 'prev_slide') {
+                this.triggerGesture('prev_slide', 'Brazo izquierdo levantado');
+                this.armNeutralRequired = true;
+            }
         }
     }
 
     /**
-     * Determina si un brazo está levantado
+     * Determina si un brazo está levantado (algoritmo mejorado)
      */
-    isArmRaised(shoulder, elbow) {
-        // El brazo está levantado si el codo está significativamente arriba del hombro
-        // En coordenadas de imagen, Y menor = más arriba
+    isArmRaised(shoulder, elbow, wrist = null) {
+        // Algoritmo 1: Diferencia Y básica (original)
         const yDifference = shoulder.y - elbow.y;
-        return yDifference > this.armRaisedThreshold;
+        const basicRaised = yDifference > this.armRaisedThreshold;
+
+        // Algoritmo 2: Ángulo del brazo (más robusto)
+        let angleRaised = false;
+        if (wrist) {
+            // Calcular ángulo del antebrazo respecto a la horizontal
+            const forearmDx = wrist.x - elbow.x;
+            const forearmDy = wrist.y - elbow.y;
+            const forearmAngle = Math.atan2(forearmDy, forearmDx) * (180 / Math.PI);
+
+            // Si el antebrazo apunta hacia arriba (ángulo negativo en coordenadas de imagen)
+            angleRaised = forearmAngle < -30; // Brazo levantado si ángulo < -30°
+        }
+
+        // Algoritmo 3: Threshold más permisivo
+        const relaxedThreshold = this.armRaisedThreshold * 0.7;
+        const relaxedRaised = yDifference > relaxedThreshold;
+
+        // Combinar algoritmos: si cualquiera detecta, considerarlo levantado
+        return basicRaised || angleRaised || relaxedRaised;
     }
 
     /**
@@ -190,6 +227,7 @@ class GestureDetector {
     triggerGesture(gestureType, gestureDescription) {
         const now = Date.now();
         this.lastGestureTime = now;
+        this.lastGestureType = gestureType;
 
         const gestureData = {
             type: gestureType,
@@ -209,12 +247,14 @@ class GestureDetector {
      * Configura la sensibilidad de detección
      */
     setSensitivity(sensitivity) {
-        // Convertir sensibilidad (0.1 - 1.0) a threshold
-        this.armRaisedThreshold = 0.1 + (sensitivity * 0.4); // Rango 0.1 - 0.5
+        // Convertir sensibilidad (0.1 - 1.0) a threshold de manera invertida
+        // Sensibilidad alta = threshold bajo = más fácil detectar
+        this.armRaisedThreshold = 0.35 - (sensitivity * 0.25); // Rango 0.35 - 0.1
         this.confidenceThreshold = Math.max(0.5, sensitivity);
 
         console.log('Sensibilidad actualizada:', {
-            armRaisedThreshold: this.armRaisedThreshold,
+            sensitivity: sensitivity,
+            armRaisedThreshold: this.armRaisedThreshold.toFixed(3),
             confidenceThreshold: this.confidenceThreshold
         });
     }
