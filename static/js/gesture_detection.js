@@ -240,9 +240,23 @@ class GestureDetector {
      * Determina si un brazo está levantado (algoritmo mejorado)
      */
     isArmRaised(shoulder, elbow, wrist = null) {
-        // Algoritmo 1: Diferencia Y básica (original)
-        const yDifference = shoulder.y - elbow.y;
-        const basicRaised = yDifference > this.armRaisedThreshold;
+        // Algoritmo mejorado: codo Y muñeca deben estar por encima del hombro
+        const elbowAboveShoulder = shoulder.y - elbow.y > this.armRaisedThreshold;
+
+        if (!elbowAboveShoulder) {
+            return false; // Si codo no está arriba del hombro, no es gesto válido
+        }
+
+        if (wrist) {
+            // También verificar que muñeca esté por encima del hombro
+            const wristAboveShoulder = shoulder.y - wrist.y > this.armRaisedThreshold;
+            if (!wristAboveShoulder) {
+                return false; // Si muñeca no está arriba del hombro, no es gesto válido
+            }
+        }
+
+        // Si llegamos aquí, el brazo está realmente levantado
+        const basicRaised = true;
 
         // Algoritmo 2: Ángulo del brazo (más robusto)
         let angleRaised = false;
