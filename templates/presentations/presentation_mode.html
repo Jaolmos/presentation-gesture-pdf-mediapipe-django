@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ presentation.title }} - SlideMotion</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- MediaPipe tasks-vision CDN (Skypack) -->
+    <script type="module">
+    import { PoseLandmarker, FilesetResolver } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@latest";
+    // Hacer disponibles globalmente
+    window.PoseLandmarker = PoseLandmarker;
+    window.FilesetResolver = FilesetResolver;
+    </script>
+
+    <style>
+        /* Fullscreen styles */
+        .fullscreen {
+            background: #000;
+            color: #fff;
+        }
+
+        /* Ocultar scrollbars */
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animaciones de transición */
+        .slide-transition {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Controles overlay */
+        .controls-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Estilos para gesture feedback */
+        .gesture-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gesture-feedback.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="h-full m-0 p-0 overflow-hidden fullscreen">
+    <!-- Slide Principal -->
+    <div id="slide-container" class="h-full w-full flex items-center justify-center relative">
+        <img id="current-slide"
+             src="{{ current_slide.image_file.url }}"
+             alt="Slide {{ current_slide_number }}"
+             class="max-h-full max-w-full object-contain slide-transition">
+    </div>
+
+    <!-- Controles Overlay (se ocultan automáticamente) -->
+    <div id="controls-overlay" class="fixed inset-0 controls-overlay opacity-0 transition-opacity duration-300 pointer-events-none">
+        <!-- Header con info de presentación -->
+        <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center">
+            <div class="text-lg font-medium">
+                {{ presentation.title }}
+            </div>
+            <div class="text-sm">
+                <span id="current-slide-number">{{ current_slide_number }}</span> / <span id="total-slides">{{ total_slides }}</span>
+            </div>
+        </div>
+
+        <!-- Footer con controles -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-between items-center">
+            <div class="flex space-x-4">
+                <button id="prev-btn"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition pointer-events-auto">
+                    ← Anterior
+                </button>
+                <button id="next-btn"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition pointer-events-auto">
+                    Siguiente →
+                </button>
+            </div>
+
+            <div class="flex space-x-4 items-center">
+                <button id="gesture-toggle"
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition pointer-events-auto">
+                    🤚 Activar Gestos
+                </button>
+                <div class="text-xs text-gray-300">
+                    <div>G: Gestos | C: Cámara debug</div>
+                    <div>Flechas/Espacio: Navegar | Esc: Salir</div>
+                </div>
+                <a href="{% url 'presentations:presentation_detail' presentation.pk %}"
+                   class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md transition pointer-events-auto">
+                    ✕ Salir
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback de gestos -->
+    <div id="gesture-feedback" class="gesture-feedback">
+        Gesto detectado
+    </div>
+
+    <!-- Camera overlay para gestos (muy pequeño por defecto) -->
+    <div id="camera-overlay" class="fixed bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 z-50"
+         style="top: 16px; right: 16px; width: 32px; height: 24px; opacity: 0.1;"><!-- Muy pequeño y casi invisible -->
+        <video id="gesture-camera"
+               class="w-full h-full object-cover"
+               autoplay muted playsinline>
+        </video>
+        <canvas id="gesture-canvas"
+                class="absolute inset-0 w-full h-full"
+                style="pointer-events: none;">
+        </canvas>
+    </div>
+
+    <!-- JavaScript para funcionalidad de presentación -->
+    {% load static %}
+    <script src="{% static 'js/gesture_detection.js' %}"></script>
+
+    <script>
+        // Variables globales
+        let currentSlideNumber = {{ current_slide_number }};
+        let totalSlides = {{ total_slides }};
+        let presentationId = {{ presentation.pk }};
+        let gesturesEnabled = false;
+        let gestureDetector = null;
+        let cameraManager = null;
+        let controlsVisible = false;
+        let controlsTimeout = null;
+        let cameraDebugVisible = false;
+
+        // Referencias DOM
+        const slideContainer = document.getElementById('slide-container');
+        const currentSlideImg = document.getElementById('current-slide');
+        const controlsOverlay = document.getElementById('controls-overlay');
+        const currentSlideNumberEl = document.getElementById('current-slide-number');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const gestureToggle = document.getElementById('gesture-toggle');
+        const gestureFeedback = document.getElementById('gesture-feedback');
+        const cameraOverlay = document.getElementById('camera-overlay');
+        const gestureCamera = document.getElementById('gesture-camera');
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePresentationMode();
+        });
+
+        function initializePresentationMode() {
+            // Configurar event listeners
+            setupEventListeners();
+
+            // Configurar HTMX para navegación de slides
+            setupHTMXHandlers();
+
+            // Ocultar controles después de 3 segundos
+            showControlsTemporarily();
+
+            console.log('Modo presentación inicializado');
+        }
+
+        function setupEventListeners() {
+            // Botones de navegación
+            prevBtn.addEventListener('click', () => navigateSlide('prev'));
+            nextBtn.addEventListener('click', () => navigateSlide('next'));
+
+            // Toggle de gestos
+            gestureToggle.addEventListener('click', toggleGestures);
+
+            // Controles de teclado
+            document.addEventListener('keydown', handleKeyNavigation);
+
+            // Mostrar controles al mover mouse
+            document.addEventListener('mousemove', showControlsTemporarily);
+
+            // Ocultar controles al hacer click en slide
+            slideContainer.addEventListener('click', hideControls);
+        }
+
+        function setupHTMXHandlers() {
+            // Configurar HTMX para manejar respuestas JSON
+            document.body.addEventListener('htmx:responseError', function(event) {
+                console.error('Error HTMX:', event.detail);
+                showGestureFeedback('Error de navegación', 'error');
+            });
+        }
+
+        async function navigateSlide(direction) {
+            let newSlideNumber = currentSlideNumber;
+
+            if (direction === 'next' && currentSlideNumber < totalSlides) {
+                newSlideNumber = currentSlideNumber + 1;
+            } else if (direction === 'prev' && currentSlideNumber > 1) {
+                newSlideNumber = currentSlideNumber - 1;
+            } else {
+                return; // No navigation needed
+            }
+
+            try {
+                // Usar fetch para cargar nuevo slide
+                const response = await fetch(`/presentar/${presentationId}/slide/${newSlideNumber}/`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                updateSlide(data);
+
+                console.log(`Navegado a slide ${newSlideNumber}`);
+
+            } catch (error) {
+                console.error('Error navegando slide:', error);
+                showGestureFeedback('Error de navegación', 'error');
+            }
+        }
+
+        function updateSlide(slideData) {
+            // Actualizar imagen del slide con transición
+            currentSlideImg.style.opacity = '0';
+
+            setTimeout(() => {
+                currentSlideImg.src = slideData.slide_image_url;
+                currentSlideImg.alt = `Slide ${slideData.slide_number}`;
+                currentSlideNumber = slideData.slide_number;
+                currentSlideNumberEl.textContent = slideData.slide_number;
+
+                // Fade in
+                currentSlideImg.style.opacity = '1';
+            }, 150);
+
+            // Actualizar estado de botones
+            prevBtn.disabled = !slideData.has_previous;
+            nextBtn.disabled = !slideData.has_next;
+        }
+
+        function handleKeyNavigation(event) {
+            switch(event.key) {
+                case 'ArrowRight':
+                case ' ': // Spacebar
+                    event.preventDefault();
+                    navigateSlide('next');
+                    break;
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    navigateSlide('prev');
+                    break;
+                case 'Escape':
+                    event.preventDefault();
+                    window.location.href = "{% url 'presentations:presentation_detail' presentation.pk %}";
+                    break;
+                case 'g':
+                case 'G':
+                    event.preventDefault();
+                    toggleGestures();
+                    break;
+                case 'c':
+                case 'C':
+                    event.preventDefault();
+                    toggleCameraDebug();
+                    break;
+            }
+        }
+
+        async function toggleGestures() {
+            if (!gesturesEnabled) {
+                try {
+                    // Inicializar detección de gestos (cámara en background)
+                    await initializeGesturesInBackground();
+                    gesturesEnabled = true;
+                    gestureToggle.textContent = '⏹️ Detener Gestos';
+                    gestureToggle.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    gestureToggle.classList.add('bg-red-600', 'hover:bg-red-700');
+                    showGestureFeedback('Gestos activados. Mueve los brazos para navegar', 'success');
+                } catch (error) {
+                    console.error('Error activando gestos:', error);
+                    showGestureFeedback('Error activando gestos', 'error');
+                }
+            } else {
+                // Detener gestos
+                stopGestures();
+                gesturesEnabled = false;
+                gestureToggle.textContent = '🤚 Activar Gestos';
+                gestureToggle.classList.remove('bg-red-600', 'hover:bg-red-700');
+                gestureToggle.classList.add('bg-green-600', 'hover:bg-green-700');
+                hideCameraDebug();
+                showGestureFeedback('Gestos desactivados', 'info');
+            }
+        }
+
+        async function initializeGesturesInBackground() {
+            // Esperar a que MediaPipe esté disponible
+            await waitForMediaPipe();
+
+            // Inicializar clases
+            gestureDetector = new GestureDetector();
+            cameraManager = new CameraManager();
+
+            // Configurar callbacks
+            gestureDetector.onGestureDetected = handleGestureDetected;
+            gestureDetector.onPoseDetected = handlePoseDetected;
+            gestureDetector.onError = handleGestureError;
+
+            // Inicializar cámara (funcionará en background aunque no se vea)
+            await cameraManager.startCamera(null, gestureCamera);
+
+            // Iniciar detección
+            await gestureDetector.startDetection(gestureCamera);
+
+            console.log('Gestos inicializados en background - funcionales sin mostrar cámara');
+        }
+
+        // Función legacy mantenida por compatibilidad
+        async function initializeGestures() {
+            await initializeGesturesInBackground();
+        }
+
+        function stopGestures() {
+            if (gestureDetector) {
+                gestureDetector.stopDetection();
+            }
+            if (cameraManager) {
+                cameraManager.stopCamera();
+            }
+        }
+
+        function handleGestureDetected(gestureData) {
+            console.log('Gesto detectado en presentación:', gestureData);
+
+            // Navegar según el gesto
+            if (gestureData.type === 'next_slide') {
+                navigateSlide('next');
+                showGestureFeedback('Siguiente slide →', 'success');
+            } else if (gestureData.type === 'prev_slide') {
+                navigateSlide('prev');
+                showGestureFeedback('← Slide anterior', 'success');
+            }
+        }
+
+        function handlePoseDetected(landmarks) {
+            // Dibujar landmarks en el canvas de la cámara
+            drawPoseOnCanvas(landmarks);
+        }
+
+        function drawPoseOnCanvas(landmarks) {
+            const canvas = document.getElementById('gesture-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Ajustar tamaño del canvas al video
+            if (gestureCamera.videoWidth && gestureCamera.videoHeight) {
+                canvas.width = gestureCamera.videoWidth;
+                canvas.height = gestureCamera.videoHeight;
+            }
+
+            // Limpiar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar landmarks principales (hombros, codos, muñecas)
+            const keyPoints = [11, 12, 13, 14, 15, 16]; // Landmarks de brazos
+
+            ctx.fillStyle = '#00ff00';
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+
+            keyPoints.forEach(index => {
+                const landmark = landmarks[index];
+                if (landmark) {
+                    const x = landmark.x * canvas.width;
+                    const y = landmark.y * canvas.height;
+
+                    // Dibujar punto
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            });
+
+            // Dibujar conexiones de brazos
+            drawConnection(ctx, landmarks, 11, 13, canvas); // Hombro izq -> Codo izq
+            drawConnection(ctx, landmarks, 13, 15, canvas); // Codo izq -> Muñeca izq
+            drawConnection(ctx, landmarks, 12, 14, canvas); // Hombro der -> Codo der
+            drawConnection(ctx, landmarks, 14, 16, canvas); // Codo der -> Muñeca der
+        }
+
+        function drawConnection(ctx, landmarks, fromIndex, toIndex, canvas) {
+            const from = landmarks[fromIndex];
+            const to = landmarks[toIndex];
+
+            if (from && to) {
+                ctx.beginPath();
+                ctx.moveTo(from.x * canvas.width, from.y * canvas.height);
+                ctx.lineTo(to.x * canvas.width, to.y * canvas.height);
+                ctx.stroke();
+            }
+        }
+
+        function handleGestureError(error) {
+            console.error('Error de gesto:', error);
+            showGestureFeedback('Error de detección', 'error');
+        }
+
+        function showGestureFeedback(message, type = 'info') {
+            gestureFeedback.textContent = message;
+            gestureFeedback.className = `gesture-feedback show ${type}`;
+
+            setTimeout(() => {
+                gestureFeedback.classList.remove('show');
+            }, 2000);
+        }
+
+        function showControlsTemporarily() {
+            controlsVisible = true;
+            controlsOverlay.style.opacity = '1';
+            controlsOverlay.style.pointerEvents = 'auto';
+
+            // Cancelar timeout anterior
+            if (controlsTimeout) {
+                clearTimeout(controlsTimeout);
+            }
+
+            // Ocultar después de 3 segundos
+            controlsTimeout = setTimeout(() => {
+                hideControls();
+            }, 3000);
+        }
+
+        function hideControls() {
+            controlsVisible = false;
+            controlsOverlay.style.opacity = '0';
+            controlsOverlay.style.pointerEvents = 'none';
+        }
+
+        function toggleCameraDebug() {
+            if (!gesturesEnabled) {
+                showGestureFeedback('Primero activa los gestos (G)', 'info');
+                return;
+            }
+
+            if (cameraDebugVisible) {
+                hideCameraDebug();
+            } else {
+                showCameraDebug();
+            }
+        }
+
+        function showCameraDebug() {
+            cameraDebugVisible = true;
+            // Hacer la cámara visible y grande
+            cameraOverlay.style.width = '256px';
+            cameraOverlay.style.height = '192px';
+            cameraOverlay.style.opacity = '1';
+            showGestureFeedback('Cámara de debug activada', 'info');
+        }
+
+        function hideCameraDebug() {
+            cameraDebugVisible = false;
+            // Hacer la cámara muy pequeña y casi invisible (pero funcional)
+            cameraOverlay.style.width = '32px';
+            cameraOverlay.style.height = '24px';
+            cameraOverlay.style.opacity = '0.1';
+        }
+
+        // Función auxiliar para esperar MediaPipe
+        function waitForMediaPipe() {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50;
+
+                const checkMediaPipe = () => {
+                    if (window.FilesetResolver && window.PoseLandmarker) {
+                        resolve();
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(checkMediaPipe, 100);
+                    } else {
+                        reject(new Error('MediaPipe no se cargó'));
+                    }
+                };
+
+                checkMediaPipe();
+            });
+        }
+    </script>
+</body>
+</html>

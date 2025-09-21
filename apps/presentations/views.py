@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from .models import Presentation
 from .forms import PresentationUploadForm
 from .services import PDFProcessor, PDFConversionError
@@ -148,3 +148,67 @@ def camera_config(request):
     }
 
     return render(request, 'presentations/camera_config.html', context)
+
+
+def presentation_mode(request, pk):
+    """Vista principal del modo presentación fullscreen"""
+    presentation = get_object_or_404(Presentation, pk=pk)
+
+    # Verificar que la presentación esté convertida
+    if not presentation.is_converted:
+        messages.error(request, 'La presentación no ha sido convertida aún.')
+        return redirect('presentations:presentation_detail', pk=pk)
+
+    # Obtener todos los slides ordenados
+    slides = presentation.slides.all().order_by('slide_number')
+
+    if not slides.exists():
+        messages.error(request, 'Esta presentación no tiene slides disponibles.')
+        return redirect('presentations:presentation_detail', pk=pk)
+
+    context = {
+        'presentation': presentation,
+        'total_slides': slides.count(),
+        'current_slide': slides.first(),
+        'current_slide_number': 1,
+        'title': f'Presentación: {presentation.title}'
+    }
+
+    return render(request, 'presentations/presentation_mode.html', context)
+
+
+def presentation_slide(request, pk, slide_number):
+    """Vista AJAX para cambiar de slide en modo presentación"""
+    presentation = get_object_or_404(Presentation, pk=pk)
+
+    # Obtener todos los slides ordenados
+    slides = presentation.slides.all().order_by('slide_number')
+    total_slides = slides.count()
+
+    # Validar número de slide
+    if slide_number < 1 or slide_number > total_slides:
+        return JsonResponse({
+            'error': 'Número de slide inválido',
+            'current_slide': 1,
+            'total_slides': total_slides
+        }, status=400)
+
+    # Obtener el slide específico
+    try:
+        current_slide = slides[slide_number - 1]
+    except IndexError:
+        return JsonResponse({
+            'error': 'Slide no encontrado',
+            'current_slide': 1,
+            'total_slides': total_slides
+        }, status=404)
+
+    # Devolver datos del slide para HTMX
+    return JsonResponse({
+        'slide_image_url': current_slide.image_file.url,
+        'slide_number': slide_number,
+        'total_slides': total_slides,
+        'presentation_title': presentation.title,
+        'has_previous': slide_number > 1,
+        'has_next': slide_number < total_slides
+    })

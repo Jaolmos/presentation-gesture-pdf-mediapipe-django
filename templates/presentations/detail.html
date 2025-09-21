@@ -29,9 +29,10 @@
                     ← Volver
                 </a>
                 {% if presentation.is_converted and presentation.total_slides > 0 %}
-                    <button class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-medium">
+                    <a href="{% url 'presentations:presentation_mode' presentation.pk %}"
+                       class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-medium">
                         🎯 Iniciar presentación
-                    </button>
+                    </a>
                 {% endif %}
             </div>
         </div>

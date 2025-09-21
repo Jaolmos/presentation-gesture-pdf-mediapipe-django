@@ -1,3 +1,4 @@
+
 /**
  * Gestión de detección de gestos con MediaPipe tasks-vision (PoseLandmarker)
  * SlideMotion - Control de presentaciones por gestos

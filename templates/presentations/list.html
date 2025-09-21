@@ -114,9 +114,11 @@
                                 Ver
                             </a>
                             {% if presentation.is_converted and presentation.total_slides > 0 %}
-                                <button class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition">
+                                <a href="{% url 'presentations:presentation_mode' presentation.pk %}"
+                                   class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition"
+                                   title="Iniciar presentación">
                                     🎯
-                                </button>
+                                </a>
                             {% endif %}
                             <a href="{% url 'presentations:delete_presentation' presentation.pk %}"
                                class="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200 transition"
