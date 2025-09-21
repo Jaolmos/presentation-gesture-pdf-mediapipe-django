@@ -167,6 +167,11 @@ class GestureDetector {
             return;
         }
 
+        // Verificar que el cuerpo esté a distancia apropiada y completo
+        if (!this.isBodyAtCorrectDistance(landmarks)) {
+            return;
+        }
+
         // Detectar brazo derecho levantado (con muñeca si está disponible)
         const rightArmRaised = this.isArmRaised(rightShoulder, rightElbow, rightWrist);
 
@@ -192,6 +197,43 @@ class GestureDetector {
                 this.armNeutralRequired = true;
             }
         }
+    }
+
+    /**
+     * Verifica si el cuerpo está a la distancia correcta y completamente visible
+     */
+    isBodyAtCorrectDistance(landmarks) {
+        // Landmarks de brazos completos
+        const leftShoulder = landmarks[11];  // Hombro izquierdo
+        const rightShoulder = landmarks[12]; // Hombro derecho
+        const leftElbow = landmarks[13];     // Codo izquierdo
+        const rightElbow = landmarks[14];    // Codo derecho
+        const leftWrist = landmarks[15];     // Muñeca izquierda
+        const rightWrist = landmarks[16];    // Muñeca derecha
+
+        // 1. Verificar que ambos brazos estén completos (hombro-codo-muñeca)
+        const leftArmComplete = leftShoulder && leftElbow && leftWrist;
+        const rightArmComplete = rightShoulder && rightElbow && rightWrist;
+
+        if (!leftArmComplete || !rightArmComplete) {
+            return false; // Brazos incompletos
+        }
+
+        // 2. Verificar que los hombros no ocupen más del 70% del ancho (no muy cerca)
+        const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x);
+        if (shoulderWidth > 0.7) {
+            return false; // Muy cerca: hombros muy anchos
+        }
+
+        // 3. Verificar que los brazos tengan espacio para moverse (no cortados)
+        const leftArmSpace = leftWrist.x > 0.05; // Margen izquierdo
+        const rightArmSpace = rightWrist.x < 0.95; // Margen derecho
+
+        if (!leftArmSpace || !rightArmSpace) {
+            return false; // Brazos cortados en los bordes
+        }
+
+        return true; // Brazos completos y distancia correcta
     }
 
     /**
