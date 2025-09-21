@@ -1,0 +1,95 @@
+<!-- Contenido de confirmación de eliminación -->
+<div class="text-center mb-6">
+    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+    </div>
+    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">
+        Confirmar eliminación
+    </h3>
+    <p class="text-sm text-gray-500">
+        Esta acción no se puede deshacer.
+    </p>
+</div>
+
+<div class="bg-gray-50 rounded-lg p-4 mb-6">
+    <h4 class="font-medium text-gray-900 mb-2">Presentación a eliminar:</h4>
+    <p class="text-lg font-semibold text-gray-800">{{ presentation.title }}</p>
+
+    <div class="mt-3 text-sm text-gray-600">
+        <p><strong>Archivo:</strong> {{ presentation.get_filename }}</p>
+        <p><strong>Tamaño:</strong> {{ presentation.file_size_mb }} MB</p>
+        <p><strong>Slides:</strong> {{ presentation.total_slides }}</p>
+        <p><strong>Creada:</strong> {{ presentation.created_at|date:"d/m/Y H:i" }}</p>
+    </div>
+</div>
+
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+                Se eliminarán permanentemente:
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+                <ul class="list-disc list-inside space-y-1">
+                    <li>El archivo PDF original</li>
+                    {% if presentation.is_converted %}
+                        <li>Todas las imágenes de slides ({{ presentation.slides.count }} archivos)</li>
+                    {% endif %}
+                    <li>Todos los datos de la presentación</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Indicador de carga -->
+<div id="delete-loading" class="hidden mb-6">
+    <div class="flex items-center justify-center space-x-3 p-4 bg-red-50 rounded-lg">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+        <span class="text-red-600 font-medium">Eliminando presentación...</span>
+    </div>
+</div>
+
+<form hx-post="{% url 'presentations:delete_presentation_htmx' presentation.pk %}"
+      hx-target="#delete-container"
+      hx-indicator="#delete-loading"
+      class="flex gap-4 justify-end">
+    {% csrf_token %}
+    <a href="{% url 'presentations:presentation_detail' presentation.pk %}"
+       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        Cancelar
+    </a>
+    <button type="submit"
+            id="delete-btn"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
+        Eliminar definitivamente
+    </button>
+</form>
+
+<script>
+    // Manejar eventos HTMX para la eliminación
+    document.body.addEventListener('htmx:beforeRequest', function(evt) {
+        if (evt.target.closest('#delete-container')) {
+            const deleteBtn = document.getElementById('delete-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+            }
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.target.closest('#delete-container')) {
+            const deleteBtn = document.getElementById('delete-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+            }
+        }
+    });
+</script>

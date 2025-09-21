@@ -54,7 +54,7 @@ class TestGestureViews:
 
         content = response.content.decode()
         assert 'mediapipe/tasks-vision' in content
-        assert 'vision_bundle.js' in content
+        assert 'skypack.dev' in content
 
     def test_camera_config_includes_gesture_detection_script(self):
         """Test que verifica inclusión del script de detección de gestos."""

@@ -1,0 +1,192 @@
+<!-- Formulario de carga -->
+<form hx-post="{% url 'presentations:upload_htmx' %}"
+      hx-target="#upload-container"
+      hx-encoding="multipart/form-data"
+      hx-indicator="#loading-indicator"
+      enctype="multipart/form-data"
+      id="uploadForm">
+    {% csrf_token %}
+
+    <!-- Campo título -->
+    <div class="mb-6">
+        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            {{ form.title.label }}
+        </label>
+        {{ form.title }}
+        {% if form.title.help_text %}
+            <p class="mt-1 text-sm text-gray-500">{{ form.title.help_text }}</p>
+        {% endif %}
+        {% if form.title.errors %}
+            <div class="mt-1 text-sm text-red-600">
+                {% for error in form.title.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Campo archivo PDF -->
+    <div class="mb-6">
+        <label for="{{ form.pdf_file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            {{ form.pdf_file.label }}
+        </label>
+
+        <!-- Zona de drag & drop -->
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition"
+             id="dropZone">
+            <div class="space-y-2">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div class="text-sm text-gray-600">
+                    <label for="{{ form.pdf_file.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-blue-700">
+                        <span>Selecciona un archivo</span>
+                        {{ form.pdf_file }}
+                    </label>
+                    <p class="pl-1">o arrastra y suelta aquí</p>
+                </div>
+                <p class="text-xs text-gray-500">Solo archivos PDF, máximo 50MB</p>
+            </div>
+        </div>
+
+        <!-- Información del archivo seleccionado -->
+        <div id="fileInfo" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-3">
+                <svg class="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                </svg>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900" id="fileName"></p>
+                    <p class="text-sm text-gray-500" id="fileSize"></p>
+                </div>
+                <button type="button" onclick="clearFile()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        {% if form.pdf_file.help_text %}
+            <p class="mt-1 text-sm text-gray-500">{{ form.pdf_file.help_text }}</p>
+        {% endif %}
+        {% if form.pdf_file.errors %}
+            <div class="mt-1 text-sm text-red-600">
+                {% for error in form.pdf_file.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Indicador de carga -->
+    <div id="loading-indicator" class="hidden mb-6">
+        <div class="flex items-center justify-center space-x-3 p-4 bg-blue-50 rounded-lg">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span class="text-primary font-medium">Subiendo y procesando presentación...</span>
+        </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex space-x-4">
+        <button type="submit"
+                class="flex-1 bg-primary text-white py-3 px-4 rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50"
+                id="submitBtn">
+            Subir presentación
+        </button>
+        <a href="{% url 'presentations:home' %}"
+           class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+            Cancelar
+        </a>
+    </div>
+</form>
+
+<!-- JavaScript para mejorar la UX -->
+<script>
+    // Manejo del archivo seleccionado
+    const fileInput = document.getElementById('{{ form.pdf_file.id_for_label }}');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const dropZone = document.getElementById('dropZone');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showFileInfo(file);
+            }
+        });
+    }
+
+    // Drag and drop
+    if (dropZone) {
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('border-primary', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-blue-50');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/pdf') {
+                    fileInput.files = files;
+                    showFileInfo(file);
+                } else {
+                    alert('Solo se permiten archivos PDF');
+                }
+            }
+        });
+    }
+
+    function showFileInfo(file) {
+        if (fileName && fileSize && fileInfo) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('hidden');
+        }
+    }
+
+    function clearFile() {
+        if (fileInput && fileInfo) {
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Manejar eventos HTMX
+    document.body.addEventListener('htmx:beforeRequest', function(evt) {
+        if (evt.target.id === 'uploadForm') {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+            }
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.target.id === 'uploadForm') {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+        }
+    });
+</script>

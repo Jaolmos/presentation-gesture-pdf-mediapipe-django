@@ -24,6 +24,23 @@ def home(request):
     return render(request, 'presentations/home.html', context)
 
 
+def home_content(request):
+    """Vista para cargar contenido de la página de inicio dinámicamente"""
+    presentations = Presentation.objects.all()
+
+    # Paginación (10 presentaciones por página)
+    paginator = Paginator(presentations, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'presentations': page_obj,
+        'total_presentations': presentations.count(),
+    }
+
+    return render(request, 'presentations/home_content.html', context)
+
+
 def upload_presentation(request):
     """Vista para cargar nuevas presentaciones"""
     if request.method == 'POST':
@@ -70,6 +87,53 @@ def upload_presentation(request):
     return render(request, 'presentations/upload.html', context)
 
 
+def upload_presentation_htmx(request):
+    """Vista HTMX para cargar presentaciones de forma asíncrona"""
+    if request.method == 'POST':
+        form = PresentationUploadForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            presentation = form.save()
+
+            # Intentar conversión inmediata del PDF
+            conversion_message = ""
+            conversion_status = "success"
+
+            try:
+                slides = PDFProcessor.convert_pdf_to_images(presentation)
+                conversion_message = f'Presentación "{presentation.title}" cargada y convertida exitosamente. {len(slides)} slides creados.'
+            except PDFConversionError as e:
+                conversion_message = f'Presentación "{presentation.title}" cargada, pero hubo un error en la conversión: {str(e)}'
+                conversion_status = "warning"
+            except Exception as e:
+                conversion_message = f'Presentación "{presentation.title}" cargada, pero hubo un error inesperado: {str(e)}'
+                conversion_status = "warning"
+
+            context = {
+                'success': True,
+                'presentation': presentation,
+                'message': conversion_message,
+                'status': conversion_status
+            }
+            return render(request, 'presentations/upload_result.html', context)
+
+        else:
+            # Devolver formulario con errores
+            context = {
+                'form': form,
+                'success': False
+            }
+            return render(request, 'presentations/upload_form.html', context)
+
+    # GET request - devolver formulario limpio
+    form = PresentationUploadForm()
+    context = {
+        'form': form,
+        'success': None
+    }
+    return render(request, 'presentations/upload_form.html', context)
+
+
 def presentation_detail(request, pk):
     """Vista de detalle de una presentación"""
     presentation = get_object_or_404(Presentation, pk=pk)
@@ -112,6 +176,35 @@ def presentation_list(request):
     return render(request, 'presentations/list.html', context)
 
 
+def presentation_list_content(request):
+    """Vista para cargar contenido de lista de presentaciones dinámicamente"""
+    presentations = Presentation.objects.all()
+
+    # Filtros opcionales
+    search_query = request.GET.get('search', '')
+    if search_query:
+        presentations = presentations.filter(title__icontains=search_query)
+
+    converted_filter = request.GET.get('converted', '')
+    if converted_filter == 'yes':
+        presentations = presentations.filter(is_converted=True)
+    elif converted_filter == 'no':
+        presentations = presentations.filter(is_converted=False)
+
+    # Paginación
+    paginator = Paginator(presentations, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'presentations': page_obj,
+        'search_query': search_query,
+        'converted_filter': converted_filter,
+    }
+
+    return render(request, 'presentations/list_content.html', context)
+
+
 def delete_presentation(request, pk):
     """Vista para eliminar una presentación con confirmación"""
     presentation = get_object_or_404(Presentation, pk=pk)
@@ -139,6 +232,35 @@ def delete_presentation(request, pk):
     }
 
     return render(request, 'presentations/delete_confirm.html', context)
+
+
+def delete_presentation_htmx(request, pk):
+    """Vista HTMX para eliminar presentación de forma asíncrona"""
+    presentation = get_object_or_404(Presentation, pk=pk)
+
+    if request.method == 'POST':
+        # Confirmar eliminación
+        presentation_title = presentation.title
+        try:
+            presentation.delete()
+            context = {
+                'success': True,
+                'message': f'Presentación "{presentation_title}" eliminada exitosamente.'
+            }
+            return render(request, 'presentations/delete_result.html', context)
+        except Exception as e:
+            context = {
+                'success': False,
+                'message': f'Error al eliminar la presentación: {str(e)}',
+                'presentation': presentation
+            }
+            return render(request, 'presentations/delete_confirm_content.html', context)
+
+    # GET request - mostrar confirmación
+    context = {
+        'presentation': presentation,
+    }
+    return render(request, 'presentations/delete_confirm_content.html', context)
 
 
 def camera_config(request):

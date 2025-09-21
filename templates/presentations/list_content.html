@@ -1,0 +1,155 @@
+<!-- Lista de presentaciones -->
+{% if presentations %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        {% for presentation in presentations %}
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition overflow-hidden">
+                <!-- Indicador de estado -->
+                <div class="h-1 {% if presentation.is_converted %}bg-green-500{% else %}bg-yellow-500{% endif %}"></div>
+
+                <div class="p-6">
+                    <!-- Título -->
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {{ presentation.title }}
+                    </h3>
+
+                    <!-- Metadatos -->
+                    <div class="text-sm text-gray-600 space-y-1 mb-4">
+                        <div class="flex justify-between">
+                            <span>Slides:</span>
+                            <span class="font-medium">{{ presentation.total_slides }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Tamaño:</span>
+                            <span class="font-medium">{{ presentation.file_size_mb }} MB</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Creado:</span>
+                            <span class="font-medium">{{ presentation.created_at|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-4">
+                        {% if presentation.is_converted %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ✓ Listo
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                ⏳ Procesando
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="flex space-x-2">
+                        <a href="{% url 'presentations:presentation_detail' presentation.pk %}"
+                           class="flex-1 bg-primary text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition text-center">
+                            Ver
+                        </a>
+                        {% if presentation.is_converted and presentation.total_slides > 0 %}
+                            <a href="{% url 'presentations:presentation_mode' presentation.pk %}"
+                               class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition"
+                               title="Iniciar presentación">
+                                🎯
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'presentations:delete_presentation' presentation.pk %}"
+                           class="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200 transition"
+                           title="Eliminar presentación">
+                            🗑️
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if presentations.has_other_pages %}
+        <div class="flex justify-center">
+            <nav class="flex space-x-2">
+                {% if presentations.has_previous %}
+                    <button hx-get="{% url 'presentations:list_content' %}?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
+                            hx-target="#content-container"
+                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                        Primera
+                    </button>
+                    <button hx-get="{% url 'presentations:list_content' %}?page={{ presentations.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
+                            hx-target="#content-container"
+                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                        Anterior
+                    </button>
+                {% endif %}
+
+                <span class="px-3 py-2 text-sm bg-primary text-white rounded-md">
+                    {{ presentations.number }} de {{ presentations.paginator.num_pages }}
+                </span>
+
+                {% if presentations.has_next %}
+                    <button hx-get="{% url 'presentations:list_content' %}?page={{ presentations.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
+                            hx-target="#content-container"
+                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                        Siguiente
+                    </button>
+                    <button hx-get="{% url 'presentations:list_content' %}?page={{ presentations.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
+                            hx-target="#content-container"
+                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                        Última
+                    </button>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+
+    <!-- Información de resultados -->
+    <div class="text-center mt-6 text-sm text-gray-600">
+        {% if search_query or converted_filter %}
+            Mostrando {{ presentations|length }} de {{ presentations.paginator.count }} presentaciones
+            {% if search_query %}
+                que coinciden con "{{ search_query }}"
+            {% endif %}
+            {% if converted_filter %}
+                {% if converted_filter == 'yes' %}(convertidas){% else %}(pendientes){% endif %}
+            {% endif %}
+        {% else %}
+            Mostrando {{ presentations|length }} de {{ presentations.paginator.count }} presentaciones
+        {% endif %}
+    </div>
+{% else %}
+    <!-- Estado vacío -->
+    <div class="text-center py-12">
+        {% if search_query or converted_filter %}
+            <!-- No hay resultados de búsqueda -->
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+                No se encontraron presentaciones
+            </h3>
+            <p class="text-gray-600 mb-4">
+                No hay presentaciones que coincidan con tus filtros de búsqueda.
+            </p>
+            <button hx-get="{% url 'presentations:list_content' %}"
+                    hx-target="#content-container"
+                    class="text-primary hover:text-blue-700 font-medium">
+                Ver todas las presentaciones
+            </button>
+        {% else %}
+            <!-- No hay presentaciones -->
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+                No hay presentaciones aún
+            </h3>
+            <p class="text-gray-600 mb-4">
+                Comienza subiendo tu primera presentación PDF.
+            </p>
+            <a href="{% url 'presentations:upload' %}"
+               class="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">
+                Subir presentación
+            </a>
+        {% endif %}
+    </div>
+{% endif %}

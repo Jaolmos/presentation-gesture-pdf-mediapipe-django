@@ -1,0 +1,67 @@
+<!-- Resultado de la eliminación -->
+<div class="text-center space-y-6">
+    {% if success %}
+        <!-- Icono de éxito -->
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+            <svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+
+        <!-- Mensaje de éxito -->
+        <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+                ¡Presentación eliminada exitosamente!
+            </h3>
+            <div class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-4">
+                <p class="text-sm">{{ message }}</p>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'presentations:home' %}"
+               class="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-medium">
+                Ir a inicio
+            </a>
+            <a href="{% url 'presentations:list' %}"
+               class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+                Ver todas las presentaciones
+            </a>
+            <a href="{% url 'presentations:upload' %}"
+               class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-medium">
+                Subir nueva presentación
+            </a>
+        </div>
+    {% else %}
+        <!-- Icono de error -->
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
+            <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+                Error al eliminar presentación
+            </h3>
+            <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-4">
+                <p class="text-sm">{{ message }}</p>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button hx-get="{% url 'presentations:delete_presentation_htmx' presentation.pk %}"
+                    hx-target="#delete-container"
+                    class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition font-medium">
+                Intentar de nuevo
+            </button>
+            <a href="{% url 'presentations:presentation_detail' presentation.pk %}"
+               class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+                Volver a la presentación
+            </a>
+        </div>
+    {% endif %}
+</div>
