@@ -139,3 +139,12 @@ def delete_presentation(request, pk):
     }
 
     return render(request, 'presentations/delete_confirm.html', context)
+
+
+def camera_config(request):
+    """Vista de configuración de cámara y gestos"""
+    context = {
+        'title': 'Configuración de Cámara y Gestos'
+    }
+
+    return render(request, 'presentations/camera_config.html', context)
