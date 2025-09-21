@@ -150,14 +150,35 @@
     </div>
 </div>
 
-<!-- MediaPipe tasks-vision CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js" crossorigin="anonymous"></script>
+<!-- MediaPipe tasks-vision CDN (Skypack) -->
+<script type="module">
+import { PoseLandmarker, FilesetResolver } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@latest";
+// Hacer disponibles globalmente
+window.PoseLandmarker = PoseLandmarker;
+window.FilesetResolver = FilesetResolver;
+</script>
 
 <!-- Clases de detección de gestos -->
 <script src="{% static 'js/gesture_detection.js' %}"></script>
 
 <!-- JavaScript para configuración de cámara -->
 <script>
+// Debug: Verificar qué variables están disponibles después de cargar MediaPipe
+window.addEventListener('load', function() {
+    console.log('Variables globales disponibles:');
+    console.log('FilesetResolver:', typeof FilesetResolver);
+    console.log('PoseLandmarker:', typeof PoseLandmarker);
+    console.log('vision:', typeof vision);
+    console.log('window.vision:', typeof window.vision);
+    console.log('Todas las keys de window que contienen "mediapipe", "vision", "pose":',
+        Object.keys(window).filter(key =>
+            key.toLowerCase().includes('mediapipe') ||
+            key.toLowerCase().includes('vision') ||
+            key.toLowerCase().includes('pose')
+        )
+    );
+});
+
 // Instancias de clases
 let gestureDetector = null;
 let cameraManager = null;
@@ -185,8 +206,36 @@ let gestureCount = 0;
 
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
-    initializePage();
+    // Esperar a que MediaPipe esté disponible
+    waitForMediaPipe().then(() => {
+        initializePage();
+    }).catch(error => {
+        console.error('Error esperando MediaPipe:', error);
+        alert('Error cargando MediaPipe: ' + error.message);
+    });
 });
+
+// Función para esperar a que MediaPipe esté disponible
+function waitForMediaPipe() {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 segundos máximo
+
+        const checkMediaPipe = () => {
+            if (window.FilesetResolver && window.PoseLandmarker) {
+                console.log('MediaPipe cargado correctamente');
+                resolve();
+            } else if (attempts < maxAttempts) {
+                attempts++;
+                setTimeout(checkMediaPipe, 100);
+            } else {
+                reject(new Error('MediaPipe no se cargó después de 5 segundos'));
+            }
+        };
+
+        checkMediaPipe();
+    });
+}
 
 async function initializePage() {
     try {

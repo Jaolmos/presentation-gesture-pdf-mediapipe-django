@@ -28,18 +28,18 @@ class GestureDetector {
         try {
             console.log('Inicializando MediaPipe tasks-vision PoseLandmarker...');
 
-            // Verificar que MediaPipe esté disponible
-            if (typeof MediaPipe === 'undefined') {
-                throw new Error('MediaPipe no está cargado. Verifica que el CDN esté incluido.');
+            // Verificar que FilesetResolver esté disponible
+            if (typeof window.FilesetResolver === 'undefined') {
+                throw new Error('MediaPipe tasks-vision no está cargado. Verifica que el CDN esté incluido.');
             }
 
             // Crear FilesetResolver para tasks-vision
-            const vision = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+            const vision = await window.FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
             );
 
             // Crear PoseLandmarker con configuración
-            this.poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+            this.poseLandmarker = await window.PoseLandmarker.createFromOptions(vision, {
                 baseOptions: {
                     modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
                     delegate: "GPU"
