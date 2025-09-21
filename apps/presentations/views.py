@@ -203,7 +203,7 @@ def presentation_slide(request, pk, slide_number):
             'total_slides': total_slides
         }, status=404)
 
-    # Devolver datos del slide para HTMX
+    # Devolver datos del slide para navegación AJAX
     return JsonResponse({
         'slide_image_url': current_slide.image_file.url,
         'slide_number': slide_number,
