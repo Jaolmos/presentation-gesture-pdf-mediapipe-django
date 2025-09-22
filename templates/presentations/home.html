@@ -3,30 +3,68 @@
 {% block title %}Inicio - SlideMotion{% endblock %}
 
 {% block content %}
-    <!-- Hero Section -->
-    <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">
-            Bienvenido a SlideMotion
-        </h1>
-        <p class="text-xl text-gray-600 mb-8">
-            Controla tus presentaciones PDF con gestos de mano
-        </p>
-        <a href="{% url 'presentations:upload' %}"
-           class="bg-primary text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition inline-block">
-            Subir mi primera presentación
-        </a>
+    <!-- Hero Section Moderno -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-3xl mb-16">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-slate-600/5"></div>
+        <div class="relative text-center py-20 px-8">
+            <!-- Icono minimalista -->
+            <div class="mx-auto w-16 h-16 mb-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V3a1 1 0 011 1v7.5L21 16v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2l3-4.5V4a1 1 0 011-1z"/>
+                </svg>
+            </div>
+
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
+                <span class="bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+                    SlideMotion
+                </span>
+            </h1>
+
+            <p class="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
+                Controla tus presentaciones PDF con
+                <span class="font-semibold text-blue-600">gestos de mano</span>
+                naturales
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="{% url 'presentations:upload' %}"
+                   class="group bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center gap-3">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Subir presentación
+                </a>
+
+                <a href="{% url 'presentations:camera_config' %}"
+                   class="text-gray-600 hover:text-blue-600 px-6 py-4 rounded-xl font-medium transition-colors duration-200 inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Configurar cámara
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Presentaciones recientes -->
     <div class="mb-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">
-                Presentaciones recientes
-            </h2>
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">
+                    Presentaciones recientes
+                </h2>
+                <p class="text-gray-600">
+                    Tus últimas presentaciones cargadas y listas para usar
+                </p>
+            </div>
             {% if total_presentations > 0 %}
                 <a href="{% url 'presentations:list' %}"
-                   class="text-primary hover:text-blue-700 font-medium">
-                    Ver todas ({{ total_presentations }})
+                   class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors duration-200">
+                    Ver todas
+                    <span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">{{ total_presentations }}</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
                 </a>
             {% endif %}
         </div>
