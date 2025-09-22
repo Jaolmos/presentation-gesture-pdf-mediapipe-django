@@ -196,7 +196,7 @@
                                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
                                              onclick="openSlideModal('{{ slide.image_file.url }}', {{ slide.slide_number }})">
                                         <!-- Overlay hover -->
-                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center pointer-events-none">
                                             <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white rounded-full p-2 shadow-lg">
                                                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -300,33 +300,66 @@
     </div>
 
     <script>
+        // Debug: Verificar que los elementos existen
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado. Verificando elementos del modal...');
+            console.log('slideModal:', document.getElementById('slideModal'));
+            console.log('modalImage:', document.getElementById('modalImage'));
+            console.log('modalSlideNumber:', document.getElementById('modalSlideNumber'));
+        });
+
         function openSlideModal(imageUrl, slideNumber) {
+            console.log('openSlideModal llamado con:', imageUrl, slideNumber);
+
             const modal = document.getElementById('slideModal');
             const modalImage = document.getElementById('modalImage');
             const modalSlideNumber = document.getElementById('modalSlideNumber');
+
+            console.log('Elementos encontrados:', {
+                modal: modal,
+                modalImage: modalImage,
+                modalSlideNumber: modalSlideNumber
+            });
+
+            if (!modal || !modalImage || !modalSlideNumber) {
+                console.error('Error: No se encontraron todos los elementos del modal');
+                return;
+            }
 
             modalImage.src = imageUrl;
             modalImage.alt = `Slide ${slideNumber}`;
             modalSlideNumber.textContent = `Slide ${slideNumber}`;
             modal.classList.remove('hidden');
 
+            console.log('Modal abierto correctamente');
+
             // Cerrar con ESC
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function handleEsc(e) {
                 if (e.key === 'Escape') {
                     closeSlideModal();
+                    document.removeEventListener('keydown', handleEsc);
                 }
             });
         }
 
         function closeSlideModal() {
+            console.log('closeSlideModal llamado');
             const modal = document.getElementById('slideModal');
-            modal.classList.add('hidden');
+            if (modal) {
+                modal.classList.add('hidden');
+                console.log('Modal cerrado');
+            }
         }
 
         // Cerrar modal clickeando fuera de la imagen
-        document.getElementById('slideModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeSlideModal();
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('slideModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeSlideModal();
+                    }
+                });
             }
         });
     </script>
