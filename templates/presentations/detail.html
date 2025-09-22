@@ -3,37 +3,77 @@
 {% block title %}{{ presentation.title }} - SlideMotion{% endblock %}
 
 {% block content %}
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                    {{ presentation.title }}
-                </h1>
-                <div class="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>Creado: {{ presentation.created_at|date:"d/m/Y H:i" }}</span>
-                    {% if presentation.is_converted %}
-                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                            ✓ Convertido
+    <!-- Header moderno -->
+    <div class="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-3xl mb-12 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-slate-600/5"></div>
+        <div class="relative p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <!-- Información principal -->
+                <div class="flex-1">
+                    <!-- Badge de estado prominente -->
+                    <div class="mb-4">
+                        {% if presentation.is_converted %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                                <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+                                Listo para presentar
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
+                                <div class="w-2.5 h-2.5 bg-amber-400 rounded-full animate-pulse"></div>
+                                Procesando presentación
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Título y metadata -->
+                    <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                        <span class="bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+                            {{ presentation.title }}
                         </span>
-                    {% else %}
-                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-                            ⏳ Pendiente conversión
-                        </span>
+                    </h1>
+
+                    <!-- Información básica -->
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="font-medium">{{ presentation.created_at|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span class="font-medium">{{ presentation.total_slides }} slides</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="font-medium">{{ presentation.file_size_mb }} MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex gap-3 lg:self-start">
+                    <a href="{% url 'presentations:home' %}"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800 rounded-xl font-medium transition-all duration-200 border border-slate-200 hover:border-slate-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Volver
+                    </a>
+                    {% if presentation.is_converted and presentation.total_slides > 0 %}
+                        <a href="{% url 'presentations:presentation_mode' presentation.pk %}"
+                           class="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center gap-3">
+                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h2m3 0h2m-7 4h8a2 2 0 002-2V8a2 2 0 00-2-2H8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Iniciar presentación
+                        </a>
                     {% endif %}
                 </div>
-            </div>
-            <div class="flex space-x-3">
-                <a href="{% url 'presentations:home' %}"
-                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
-                    ← Volver
-                </a>
-                {% if presentation.is_converted and presentation.total_slides > 0 %}
-                    <a href="{% url 'presentations:presentation_mode' presentation.pk %}"
-                       class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-medium">
-                        🎯 Iniciar presentación
-                    </a>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -41,67 +81,84 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Información de la presentación -->
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                    Información
-                </h3>
+            <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-8">
+                <!-- Header de la tarjeta -->
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">
+                        Información detallada
+                    </h3>
+                </div>
 
-                <dl class="space-y-3">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Archivo</dt>
-                        <dd class="text-sm text-gray-900">
+                <!-- Información organizada -->
+                <div class="space-y-6">
+                    <!-- Archivo -->
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="text-sm font-semibold text-gray-700">Archivo original</span>
+                        </div>
+                        <p class="text-gray-900 font-medium text-sm break-all">
                             {{ presentation.get_filename|default:"Sin archivo" }}
-                        </dd>
+                        </p>
                     </div>
 
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Tamaño</dt>
-                        <dd class="text-sm text-gray-900">
-                            {{ presentation.file_size_mb }} MB
-                        </dd>
+                    <!-- Estadísticas en grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-blue-600 mb-1">{{ presentation.total_slides }}</div>
+                            <div class="text-xs font-medium text-blue-700">Slides</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-purple-600 mb-1">{{ presentation.file_size_mb }}</div>
+                            <div class="text-xs font-medium text-purple-700">MB</div>
+                        </div>
                     </div>
 
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Total de slides</dt>
-                        <dd class="text-sm text-gray-900">
-                            {{ presentation.total_slides }}
-                            {% if presentation.total_slides > 0 %}
-                                página{% if presentation.total_slides != 1 %}s{% endif %}
-                            {% else %}
-                                (Pendiente conversión)
-                            {% endif %}
-                        </dd>
+                    <!-- Timeline -->
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">Creado</div>
+                                <div class="text-xs text-gray-600">{{ presentation.created_at|date:"d/m/Y H:i" }}</div>
+                            </div>
+                        </div>
+                        {% if presentation.updated_at != presentation.created_at %}
+                            <div class="flex items-start gap-3">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-gray-900">Última actualización</div>
+                                    <div class="text-xs text-gray-600">{{ presentation.updated_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
+                </div>
 
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Estado</dt>
-                        <dd class="text-sm">
-                            {% if presentation.is_converted %}
-                                <span class="text-green-600 font-medium">✓ Listo para presentar</span>
-                            {% else %}
-                                <span class="text-yellow-600 font-medium">⏳ Procesando...</span>
-                            {% endif %}
-                        </dd>
-                    </div>
-
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Última actualización</dt>
-                        <dd class="text-sm text-gray-900">
-                            {{ presentation.updated_at|date:"d/m/Y H:i" }}
-                        </dd>
-                    </div>
-                </dl>
-
+                <!-- Acciones -->
                 {% if presentation.pdf_file %}
-                    <div class="mt-6 pt-6 border-t space-y-3">
+                    <div class="mt-8 pt-6 border-t border-gray-200 space-y-3">
                         <a href="{{ presentation.pdf_file.url }}"
                            target="_blank"
-                           class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition text-center block">
-                            📄 Ver PDF original
+                           class="w-full bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 text-slate-700 hover:text-slate-800 px-4 py-3 rounded-xl font-medium transition-all duration-200 text-center flex items-center justify-center gap-2 border border-slate-200 hover:border-slate-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Ver PDF original
                         </a>
                         <a href="{% url 'presentations:delete_presentation' presentation.pk %}"
-                           class="w-full bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 transition text-center block">
-                            🗑️ Eliminar presentación
+                           class="w-full bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 hover:text-red-800 px-4 py-3 rounded-xl font-medium transition-all duration-200 text-center flex items-center justify-center gap-2 border border-red-200 hover:border-red-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Eliminar presentación
                         </a>
                     </div>
                 {% endif %}
@@ -111,20 +168,42 @@
         <!-- Slides preview -->
         <div class="lg:col-span-2">
             {% if presentation.is_converted and slides %}
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        Vista previa de slides ({{ slides.count }})
-                    </h3>
+                <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-8">
+                    <!-- Header de la galería -->
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">
+                                Vista previa de slides
+                            </h3>
+                            <p class="text-sm text-gray-600">{{ slides.count }} slides disponibles</p>
+                        </div>
+                    </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Grid de slides modernizado -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                         {% for slide in slides %}
-                            <div class="group relative">
-                                <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden">
+                            <div class="group relative bg-white rounded-xl border border-gray-100 hover:border-blue-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                                <!-- Contenedor de imagen con aspect ratio -->
+                                <div class="aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
                                     {% if slide.image_file %}
                                         <img src="{{ slide.image_file.url }}"
                                              alt="Slide {{ slide.slide_number }}"
-                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
+                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
                                              onclick="openSlideModal('{{ slide.image_file.url }}', {{ slide.slide_number }})">
+                                        <!-- Overlay hover -->
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                                            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white rounded-full p-2 shadow-lg">
+                                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
                                     {% else %}
                                         <div class="w-full h-full flex items-center justify-center text-gray-400">
                                             <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -133,40 +212,57 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-2 rounded-b-lg">
-                                    Slide {{ slide.slide_number }}
+                                <!-- Footer del slide -->
+                                <div class="p-3 bg-white">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-semibold text-gray-700">Slide {{ slide.slide_number }}</span>
+                                        <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 </div>
             {% elif presentation.is_converted and not slides %}
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="text-center py-8">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">
+                <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-8">
+                    <div class="text-center py-12">
+                        <div class="mx-auto w-16 h-16 mb-6 bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
                             No hay slides disponibles
                         </h3>
-                        <p class="text-gray-600">
-                            La presentación está marcada como convertida pero no se encontraron slides.
+                        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                            La presentación está marcada como convertida pero no se encontraron slides generados.
                         </p>
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            Posible error en la conversión
+                        </div>
                     </div>
                 </div>
             {% else %}
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="text-center py-8">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">
+                <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-8">
+                    <div class="text-center py-12">
+                        <div class="mx-auto w-16 h-16 mb-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl flex items-center justify-center">
+                            <div class="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
                             Procesando presentación...
                         </h3>
-                        <p class="text-gray-600">
-                            Estamos convirtiendo tu PDF a slides. Esto puede tomar unos momentos.
+                        <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                            Estamos convirtiendo tu PDF a slides. Este proceso puede tomar unos momentos dependiendo del tamaño del archivo.
                         </p>
                         <button onclick="location.reload()"
-                                class="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition text-sm">
-                            🔄 Actualizar estado
+                                class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center gap-3">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Actualizar estado
                         </button>
                     </div>
                 </div>
@@ -174,15 +270,31 @@
         </div>
     </div>
 
-    <!-- Modal para ver slide completo -->
-    <div id="slideModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-        <div class="relative max-w-4xl max-h-full">
-            <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain">
-            <button onclick="closeSlideModal()"
-                    class="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl font-bold">
-                ×
-            </button>
-            <div id="modalSlideNumber" class="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded">
+    <!-- Modal moderno para ver slide completo -->
+    <div id="slideModal" class="hidden fixed inset-0 bg-black bg-opacity-90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="relative max-w-6xl max-h-full w-full">
+            <!-- Imagen del slide -->
+            <div class="relative rounded-2xl overflow-hidden shadow-2xl bg-white">
+                <img id="modalImage" src="" alt="" class="w-full h-auto max-h-[80vh] object-contain">
+
+                <!-- Botón de cerrar moderno -->
+                <button onclick="closeSlideModal()"
+                        class="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+
+                <!-- Información del slide -->
+                <div id="modalSlideNumber" class="absolute bottom-4 left-4 bg-black bg-opacity-75 backdrop-blur-sm text-white px-4 py-2 rounded-xl font-medium">
+                </div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="text-center mt-6">
+                <p class="text-white text-sm opacity-75">
+                    Presiona <kbd class="bg-white bg-opacity-20 px-2 py-1 rounded text-xs">ESC</kbd> o haz clic fuera de la imagen para cerrar
+                </p>
             </div>
         </div>
     </div>

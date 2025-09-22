@@ -3,25 +3,40 @@
 {% block title %}{{ title }} - SlideMotion{% endblock %}
 
 {% block content %}
-    <div class="max-w-2xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                {{ title }}
-            </h1>
-            <p class="text-gray-600">
-                Sube un archivo PDF para crear una nueva presentación
-            </p>
+    <div class="max-w-4xl mx-auto">
+        <!-- Header moderno -->
+        <div class="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-3xl mb-12 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-slate-600/5"></div>
+            <div class="relative text-center py-16 px-8">
+                <!-- Icono minimalista -->
+                <div class="mx-auto w-20 h-20 mb-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl flex items-center justify-center shadow-xl">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                    <span class="bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+                        {{ title }}
+                    </span>
+                </h1>
+
+                <p class="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+                    Sube un archivo PDF para crear una nueva presentación con
+                    <span class="font-semibold text-blue-600">control por gestos</span>
+                </p>
+            </div>
         </div>
 
-        <!-- Contenedor dinámico del formulario -->
-        <div class="bg-white rounded-lg shadow-md p-8">
+        <!-- Contenedor dinámico del formulario moderno -->
+        <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-3xl shadow-xl p-8 md:p-12">
             <div id="upload-container"
                  hx-get="{% url 'presentations:upload_htmx' %}"
                  hx-trigger="load">
                 <!-- El formulario se carga dinámicamente -->
-                <div class="flex justify-center py-8">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div class="flex flex-col items-center justify-center py-16">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
+                    <p class="text-gray-600 font-medium">Preparando formulario...</p>
                 </div>
             </div>
         </div>

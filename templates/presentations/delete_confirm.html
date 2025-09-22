@@ -3,14 +3,42 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-    <div id="delete-container"
-         hx-get="{% url 'presentations:delete_presentation_htmx' presentation.pk %}"
-         hx-trigger="load">
-        <!-- El contenido se carga dinámicamente -->
-        <div class="flex justify-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+    <!-- Header moderno de eliminación -->
+    <div class="relative bg-gradient-to-br from-red-50 via-white to-orange-50 rounded-3xl mb-12 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-red-600/5 to-orange-600/5"></div>
+        <div class="relative text-center py-16 px-8">
+            <!-- Icono de advertencia -->
+            <div class="mx-auto w-20 h-20 mb-8 bg-gradient-to-br from-red-600 to-red-700 rounded-3xl flex items-center justify-center shadow-xl">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                <span class="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                    {{ title }}
+                </span>
+            </h1>
+
+            <p class="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+                Confirma la eliminación de la presentación.
+                <span class="font-semibold text-red-600">Esta acción no se puede deshacer.</span>
+            </p>
         </div>
     </div>
-</div>
+
+    <!-- Contenedor dinámico del modal moderno -->
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-3xl shadow-xl p-8 md:p-12">
+            <div id="delete-container"
+                 hx-get="{% url 'presentations:delete_presentation_htmx' presentation.pk %}"
+                 hx-trigger="load">
+                <!-- El contenido se carga dinámicamente -->
+                <div class="flex flex-col items-center justify-center py-16">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent mb-4"></div>
+                    <p class="text-gray-600 font-medium">Cargando información...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -1,63 +1,97 @@
 <!-- Lista de presentaciones -->
 {% if presentations %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 mb-8">
         {% for presentation in presentations %}
-            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition overflow-hidden">
-                <!-- Indicador de estado -->
-                <div class="h-1 {% if presentation.is_converted %}bg-green-500{% else %}bg-yellow-500{% endif %}"></div>
-
-                <div class="p-6">
-                    <!-- Título -->
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                        {{ presentation.title }}
-                    </h3>
-
-                    <!-- Metadatos -->
-                    <div class="text-sm text-gray-600 space-y-1 mb-4">
-                        <div class="flex justify-between">
-                            <span>Slides:</span>
-                            <span class="font-medium">{{ presentation.total_slides }}</span>
+            <div class="group bg-white rounded-2xl border border-gray-100 hover:border-blue-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <!-- Header con estado -->
+                <div class="p-6 pb-4">
+                    <div class="flex items-start justify-between mb-4">
+                        <!-- Icono de presentación -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center group-hover:from-blue-100 group-hover:to-blue-200 transition-colors duration-300">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors duration-200">
+                                    {{ presentation.title }}
+                                </h3>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Tamaño:</span>
-                            <span class="font-medium">{{ presentation.file_size_mb }} MB</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Creado:</span>
-                            <span class="font-medium">{{ presentation.created_at|date:"d/m/Y" }}</span>
-                        </div>
-                    </div>
 
-                    <!-- Estado -->
-                    <div class="mb-4">
+                        <!-- Badge de estado moderno -->
                         {% if presentation.is_converted %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                ✓ Listo
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                                Listo
                             </span>
                         {% else %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                ⏳ Procesando
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                                Procesando
                             </span>
                         {% endif %}
                     </div>
+                </div>
 
-                    <!-- Acciones -->
-                    <div class="flex space-x-2">
+                <!-- Información con iconos -->
+                <div class="px-6 pb-6">
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-3 text-sm text-gray-600">
+                            <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium">{{ presentation.get_filename|default:"Sin archivo" }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="font-medium">{{ presentation.file_size_mb }} MB</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                                <span class="font-medium">{{ presentation.total_slides }} slides</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>{{ presentation.created_at|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones modernos -->
+                    <div class="flex gap-2">
                         <a href="{% url 'presentations:presentation_detail' presentation.pk %}"
-                           class="flex-1 bg-primary text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition text-center">
-                            Ver
+                           class="flex-1 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 text-slate-700 hover:text-slate-800 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-center border border-slate-200 hover:border-slate-300">
+                            Ver detalles
                         </a>
                         {% if presentation.is_converted and presentation.total_slides > 0 %}
                             <a href="{% url 'presentations:presentation_mode' presentation.pk %}"
-                               class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition"
+                               class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5 inline-flex items-center gap-2"
                                title="Iniciar presentación">
-                                🎯
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h2m3 0h2m-7 4h8a2 2 0 002-2V8a2 2 0 00-2-2H8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
                             </a>
                         {% endif %}
                         <a href="{% url 'presentations:delete_presentation' presentation.pk %}"
-                           class="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200 transition"
+                           class="bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 hover:text-red-800 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 inline-flex items-center border border-red-200 hover:border-red-300"
                            title="Eliminar presentación">
-                            🗑️
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
                         </a>
                     </div>
                 </div>
@@ -65,37 +99,49 @@
         {% endfor %}
     </div>
 
-    <!-- Paginación -->
+    <!-- Paginación moderna -->
     {% if presentations.has_other_pages %}
         <div class="flex justify-center">
-            <nav class="flex space-x-2">
+            <nav class="flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl p-2 shadow-sm">
                 {% if presentations.has_previous %}
                     <button hx-get="{% url 'presentations:list_content' %}?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
                             hx-target="#content-container"
-                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                            class="px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                        </svg>
                         Primera
                     </button>
                     <button hx-get="{% url 'presentations:list_content' %}?page={{ presentations.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
                             hx-target="#content-container"
-                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                            class="px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
                         Anterior
                     </button>
                 {% endif %}
 
-                <span class="px-3 py-2 text-sm bg-primary text-white rounded-md">
+                <div class="px-6 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold shadow-sm">
                     {{ presentations.number }} de {{ presentations.paginator.num_pages }}
-                </span>
+                </div>
 
                 {% if presentations.has_next %}
                     <button hx-get="{% url 'presentations:list_content' %}?page={{ presentations.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
                             hx-target="#content-container"
-                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                            class="px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
                         Siguiente
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </button>
                     <button hx-get="{% url 'presentations:list_content' %}?page={{ presentations.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if converted_filter %}&converted={{ converted_filter }}{% endif %}"
                             hx-target="#content-container"
-                            class="px-3 py-2 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded-md hover:bg-gray-50">
+                            class="px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
                         Última
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                        </svg>
                     </button>
                 {% endif %}
             </nav>

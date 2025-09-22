@@ -3,66 +3,89 @@
 {% block title %}{{ title }} - SlideMotion{% endblock %}
 
 {% block content %}
-    <!-- Header con filtros -->
-    <div class="mb-8">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">
-                {{ title }}
-            </h1>
-            <a href="{% url 'presentations:upload' %}"
-               class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                Subir presentación
-            </a>
+    <!-- Header moderno con filtros -->
+    <div class="mb-12">
+        <!-- Hero section de lista -->
+        <div class="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-3xl mb-8 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-slate-600/5"></div>
+            <div class="relative p-8">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                    <div>
+                        <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3 tracking-tight">
+                            <span class="bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+                                {{ title }}
+                            </span>
+                        </h1>
+                        <p class="text-xl text-gray-600 font-light">
+                            Explora y gestiona todas tus presentaciones
+                        </p>
+                    </div>
+                    <a href="{% url 'presentations:upload' %}"
+                       class="group bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center gap-3 lg:self-start">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nueva presentación
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <!-- Filtros y búsqueda -->
-        <div class="bg-white rounded-lg shadow-sm p-4">
+        <!-- Filtros y búsqueda modernos -->
+        <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-sm p-6">
             <form hx-get="{% url 'presentations:list_content' %}"
                   hx-target="#content-container"
                   hx-trigger="submit, keyup delay:500ms from:#search, change from:#converted"
-                  class="flex flex-wrap gap-4 items-end">
+                  class="flex flex-col lg:flex-row gap-6 items-end">
+
                 <!-- Búsqueda -->
-                <div class="flex-1 min-w-64">
-                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+                <div class="flex-1 lg:min-w-96">
+                    <label for="search" class="block text-sm font-semibold text-gray-700 mb-2">
                         Buscar presentaciones
                     </label>
-                    <input type="text"
-                           id="search"
-                           name="search"
-                           value="{{ search_query }}"
-                           placeholder="Buscar por título..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text"
+                               id="search"
+                               name="search"
+                               value="{{ search_query }}"
+                               placeholder="Buscar por título..."
+                               class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200">
+                    </div>
                 </div>
 
                 <!-- Filtro por estado -->
-                <div>
-                    <label for="converted" class="block text-sm font-medium text-gray-700 mb-1">
+                <div class="lg:min-w-48">
+                    <label for="converted" class="block text-sm font-semibold text-gray-700 mb-2">
                         Estado
                     </label>
                     <select id="converted"
                             name="converted"
-                            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                        <option value="">Todos</option>
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 appearance-none cursor-pointer">
+                        <option value="">Todos los estados</option>
                         <option value="yes" {% if converted_filter == 'yes' %}selected{% endif %}>
-                            Convertidos
+                            ✓ Convertidos
                         </option>
                         <option value="no" {% if converted_filter == 'no' %}selected{% endif %}>
-                            Pendientes
+                            ⏳ Pendientes
                         </option>
                     </select>
                 </div>
 
                 <!-- Botones -->
-                <div class="flex space-x-2">
-                    <button type="submit"
-                            class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                        Filtrar
-                    </button>
+                <div class="flex gap-3 lg:self-end">
                     <button type="button"
                            hx-get="{% url 'presentations:list_content' %}"
                            hx-target="#content-container"
                            onclick="document.getElementById('search').value=''; document.getElementById('converted').value='';"
-                           class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+                           class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-all duration-200 inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
                         Limpiar
                     </button>
                 </div>

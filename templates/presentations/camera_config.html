@@ -4,146 +4,274 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                    {{ title }}
-                </h1>
-                <p class="text-gray-600">
-                    Configura tu cámara y ajusta la detección de gestos para controlar presentaciones
-                </p>
-            </div>
-            <div class="flex space-x-3">
-                <a href="{% url 'presentations:home' %}"
-                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
-                    ← Volver
-                </a>
+    <!-- Header moderno -->
+    <div class="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-3xl mb-12 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-slate-600/5"></div>
+        <div class="relative p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <!-- Información principal -->
+                <div class="flex-1">
+                    <!-- Icono moderno -->
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Título y descripción -->
+                    <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                        <span class="bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+                            {{ title }}
+                        </span>
+                    </h1>
+
+                    <p class="text-xl text-gray-600 font-light max-w-2xl leading-relaxed">
+                        Configura tu cámara web y ajusta la detección de gestos para un
+                        <span class="font-semibold text-blue-600">control perfecto</span> de tus presentaciones
+                    </p>
+                </div>
+
+                <!-- Botón de acción -->
+                <div class="lg:self-start">
+                    <a href="{% url 'presentations:home' %}"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800 rounded-xl font-medium transition-all duration-200 border border-slate-200 hover:border-slate-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Volver
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Panel de Configuración -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                Configuración de Cámara
-            </h3>
+    <div class="max-w-7xl mx-auto">
 
-            <!-- Selección de Cámara -->
-            <div class="mb-6">
-                <label for="cameraSelect" class="block text-sm font-medium text-gray-700 mb-2">
-                    Seleccionar Cámara
-                </label>
-                <select id="cameraSelect"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                    <option value="">Detectando cámaras...</option>
-                </select>
-            </div>
-
-            <!-- Configuración de Sensibilidad -->
-            <div class="mb-6">
-                <label for="sensitivity" class="block text-sm font-medium text-gray-700 mb-2">
-                    Sensibilidad de Detección
-                </label>
-                <input type="range"
-                       id="sensitivity"
-                       min="0.1"
-                       max="1.0"
-                       step="0.1"
-                       value="0.7"
-                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>Baja</span>
-                    <span>Media</span>
-                    <span>Alta</span>
-                </div>
-            </div>
-
-            <!-- Botones de Control -->
-            <div class="space-y-3">
-                <button id="startCameraBtn"
-                        class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
-                    📹 Iniciar Cámara
-                </button>
-                <button id="stopCameraBtn"
-                        class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
-                        disabled>
-                    ⏹️ Detener Cámara
-                </button>
-                <button id="testGesturesBtn"
-                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-                        disabled>
-                    🤚 Probar Gestos
-                </button>
-            </div>
-
-            <!-- Estado de Configuración -->
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 class="font-medium text-gray-900 mb-2">Estado Actual</h4>
-                <div class="space-y-1 text-sm text-gray-600">
-                    <div>Cámara: <span id="cameraStatus" class="font-medium">No conectada</span></div>
-                    <div>Detección: <span id="detectionStatus" class="font-medium">Inactiva</span></div>
-                    <div>Gestos detectados: <span id="gestureCount" class="font-medium">0</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Panel de Vista Previa -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                Vista Previa de Cámara
-            </h3>
-
-            <!-- Video Preview -->
-            <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-4" style="aspect-ratio: 16/9;">
-                <video id="cameraVideo"
-                       class="w-full h-full object-cover"
-                       autoplay
-                       muted
-                       playsinline>
-                </video>
-                <canvas id="poseCanvas"
-                        class="absolute inset-0 w-full h-full"
-                        style="pointer-events: none;">
-                </canvas>
-
-                <!-- Overlay de estado -->
-                <div id="cameraOverlay" class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75">
-                    <div class="text-center text-white">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Panel de Configuración modernizado -->
+            <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-8">
+                <!-- Header del panel -->
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        <p class="text-lg font-medium">Cámara no iniciada</p>
-                        <p class="text-sm text-gray-300">Haz clic en "Iniciar Cámara" para comenzar</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">
+                            Configuración de Cámara
+                        </h3>
+                        <p class="text-sm text-gray-600">Ajusta los parámetros de detección</p>
+                    </div>
+                </div>
+
+                <!-- Selección de Cámara modernizada -->
+                <div class="mb-8">
+                    <label for="cameraSelect" class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Seleccionar Cámara
+                    </label>
+                    <select id="cameraSelect"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 appearance-none cursor-pointer">
+                        <option value="">Detectando cámaras...</option>
+                    </select>
+                </div>
+
+                <!-- Configuración de Sensibilidad modernizada -->
+                <div class="mb-8">
+                    <label for="sensitivity" class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Sensibilidad de Detección
+                    </label>
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4">
+                        <input type="range"
+                               id="sensitivity"
+                               min="0.1"
+                               max="1.0"
+                               step="0.1"
+                               value="0.7"
+                               class="w-full h-3 bg-blue-200 rounded-lg appearance-none cursor-pointer slider">
+                        <div class="flex justify-between text-xs font-medium text-gray-600 mt-2">
+                            <span class="flex items-center gap-1">
+                                <div class="w-2 h-2 bg-red-400 rounded-full"></div>
+                                Baja
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                Media
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                Alta
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Control modernizados -->
+                <div class="space-y-4 mb-8">
+                    <button id="startCameraBtn"
+                            class="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Iniciar Cámara
+                    </button>
+                    <button id="stopCameraBtn"
+                            class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center justify-center gap-3 disabled:opacity-50 disabled:transform-none"
+                            disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"/>
+                        </svg>
+                        Detener Cámara
+                    </button>
+                    <button id="testGesturesBtn"
+                            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 inline-flex items-center justify-center gap-3 disabled:opacity-50 disabled:transform-none"
+                            disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m-3 0a1.5 1.5 0 013 0"/>
+                        </svg>
+                        Probar Gestos
+                    </button>
+                </div>
+
+                <!-- Estado de Configuración modernizado -->
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-bold text-gray-900">Estado Actual</h4>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 text-sm">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
+                            <span class="text-gray-600 font-medium">Cámara:</span>
+                            <span id="cameraStatus" class="font-bold text-gray-900">No conectada</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
+                            <span class="text-gray-600 font-medium">Detección:</span>
+                            <span id="detectionStatus" class="font-bold text-gray-900">Inactiva</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
+                            <span class="text-gray-600 font-medium">Gestos detectados:</span>
+                            <span id="gestureCount" class="font-bold text-blue-600">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Información de Gestos -->
-            <div class="bg-blue-50 rounded-lg p-4">
-                <h4 class="font-medium text-blue-900 mb-2">Gestos Disponibles</h4>
-                <div class="space-y-2 text-sm text-blue-800">
-                    <div class="flex items-center">
-                        <span class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 text-xs">→</span>
-                        <span>Brazo derecho levantado: Siguiente slide</span>
+            <!-- Panel de Vista Previa modernizado -->
+            <div class="bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-8">
+                <!-- Header del panel -->
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-10 h-10 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
                     </div>
-                    <div class="flex items-center">
-                        <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 text-xs">←</span>
-                        <span>Brazo izquierdo levantado: Slide anterior</span>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">
+                            Vista Previa en Tiempo Real
+                        </h3>
+                        <p class="text-sm text-gray-600">Monitor de cámara y gestos detectados</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Último Gesto Detectado -->
-            <div class="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-600">Último gesto:
-                    <span id="lastGesture" class="font-medium text-gray-900">Ninguno</span>
+                <!-- Video Preview modernizado -->
+                <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl overflow-hidden mb-6 border-2 border-gray-300" style="aspect-ratio: 16/9;">
+                    <video id="cameraVideo"
+                           class="w-full h-full object-cover"
+                           autoplay
+                           muted
+                           playsinline>
+                    </video>
+                    <canvas id="poseCanvas"
+                            class="absolute inset-0 w-full h-full"
+                            style="pointer-events: none;">
+                    </canvas>
+
+                    <!-- Overlay de estado modernizado -->
+                    <div id="cameraOverlay" class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm">
+                        <div class="text-center text-white max-w-md">
+                            <div class="mx-auto w-16 h-16 mb-6 bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h4 class="text-xl font-bold mb-3">Cámara no iniciada</h4>
+                            <p class="text-gray-300 leading-relaxed">
+                                Haz clic en "Iniciar Cámara" para comenzar la configuración y ver la vista previa en tiempo real
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-xs text-gray-500 mt-1">
-                    Hace <span id="gestureTime">--</span>
+
+                <!-- Información de Gestos modernizada -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-6 border border-blue-200">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m-3 0a1.5 1.5 0 013 0"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-bold text-blue-900">Gestos Disponibles</h4>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-blue-100">
+                            <div class="w-8 h-8 bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-blue-800">Brazo derecho levantado</span>
+                                <p class="text-xs text-blue-600">Avanzar al siguiente slide</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-blue-100">
+                            <div class="w-8 h-8 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-blue-800">Brazo izquierdo levantado</span>
+                                <p class="text-xs text-blue-600">Retroceder al slide anterior</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Último Gesto Detectado modernizado -->
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-bold text-gray-900">Última Detección</h4>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
+                            <span class="text-gray-600 font-medium">Último gesto:</span>
+                            <span id="lastGesture" class="font-bold text-gray-900">Ninguno</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
+                            <span class="text-gray-600 font-medium">Hace:</span>
+                            <span id="gestureTime" class="font-bold text-gray-900">--</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
