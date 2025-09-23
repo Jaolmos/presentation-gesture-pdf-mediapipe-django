@@ -88,7 +88,7 @@ def upload_presentation(request):
 
 
 def upload_presentation_htmx(request):
-    """Vista HTMX para cargar presentaciones de forma asíncrona"""
+    """Vista HTMX para cargar presentaciones con conversión inmediata"""
     if request.method == 'POST':
         form = PresentationUploadForm(request.POST, request.FILES)
 
@@ -235,7 +235,7 @@ def delete_presentation(request, pk):
 
 
 def delete_presentation_htmx(request, pk):
-    """Vista HTMX para eliminar presentación de forma asíncrona"""
+    """Vista HTMX para eliminar presentación con confirmación"""
     presentation = get_object_or_404(Presentation, pk=pk)
 
     if request.method == 'POST':
