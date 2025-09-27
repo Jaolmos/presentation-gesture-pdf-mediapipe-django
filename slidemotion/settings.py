@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third-party Apps
-    # (Agregar aquí dependencias externas cuando las instalemos)
+    'widget_tweaks',
 
     # Local Apps
     'apps.presentations',
