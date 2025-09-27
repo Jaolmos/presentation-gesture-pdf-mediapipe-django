@@ -152,6 +152,212 @@ class TestSlideModel:
         assert Slide._meta.verbose_name_plural == "Slides"
 
 
+@pytest.mark.django_db
+class TestPresentationModelMethods:
+    """Tests para métodos adicionales del modelo Presentation"""
+
+    def test_file_size_mb_property_with_file(self):
+        """Test propiedad file_size_mb con archivo"""
+        # Crear archivo PDF simulado de tamaño conocido
+        pdf_content = b'%PDF-1.4\n' + b'x' * (2 * 1024 * 1024)  # ~2MB
+        pdf_file = SimpleUploadedFile(
+            "test.pdf",
+            pdf_content,
+            content_type="application/pdf"
+        )
+
+        presentation = Presentation.objects.create(
+            title="Con archivo",
+            pdf_file=pdf_file
+        )
+
+        # Verificar que el tamaño es aproximadamente 2MB
+        assert presentation.file_size_mb >= 1.9
+        assert presentation.file_size_mb <= 2.1
+
+    def test_get_filename_with_file(self):
+        """Test método get_filename con archivo"""
+        pdf_content = b'%PDF-1.4\nfake pdf content'
+        pdf_file = SimpleUploadedFile(
+            "mi_presentacion.pdf",
+            pdf_content,
+            content_type="application/pdf"
+        )
+
+        presentation = Presentation.objects.create(
+            title="Con archivo",
+            pdf_file=pdf_file
+        )
+
+        filename = presentation.get_filename()
+        assert filename.endswith('.pdf')
+        assert 'mi_presentacion' in filename.lower()
+
+    def test_can_be_converted_true(self):
+        """Test método can_be_converted cuando puede ser convertida"""
+        pdf_content = b'%PDF-1.4\nfake pdf content'
+        pdf_file = SimpleUploadedFile(
+            "test.pdf",
+            pdf_content,
+            content_type="application/pdf"
+        )
+
+        presentation = Presentation.objects.create(
+            title="Puede convertirse",
+            pdf_file=pdf_file,
+            is_converted=False
+        )
+
+        assert presentation.can_be_converted() is True
+
+    def test_can_be_converted_false_no_file(self):
+        """Test método can_be_converted sin archivo PDF"""
+        presentation = Presentation.objects.create(
+            title="Sin archivo",
+            is_converted=False
+        )
+
+        assert presentation.can_be_converted() is False
+
+    def test_can_be_converted_false_already_converted(self):
+        """Test método can_be_converted ya convertida"""
+        pdf_content = b'%PDF-1.4\nfake pdf content'
+        pdf_file = SimpleUploadedFile(
+            "test.pdf",
+            pdf_content,
+            content_type="application/pdf"
+        )
+
+        presentation = Presentation.objects.create(
+            title="Ya convertida",
+            pdf_file=pdf_file,
+            is_converted=True
+        )
+
+        assert presentation.can_be_converted() is False
+
+    def test_needs_reconversion_true(self):
+        """Test método needs_reconversion cuando necesita reconversión"""
+        pdf_content = b'%PDF-1.4\nfake pdf content'
+        pdf_file = SimpleUploadedFile(
+            "test.pdf",
+            pdf_content,
+            content_type="application/pdf"
+        )
+
+        presentation = Presentation.objects.create(
+            title="Necesita reconversión",
+            pdf_file=pdf_file,
+            is_converted=True,
+            total_slides=5
+        )
+
+        # No crear slides para simular que se perdieron
+        assert presentation.needs_reconversion() is True
+
+    def test_needs_reconversion_false_not_converted(self):
+        """Test método needs_reconversion cuando no está convertida"""
+        presentation = Presentation.objects.create(
+            title="No convertida",
+            is_converted=False
+        )
+
+        assert presentation.needs_reconversion() is False
+
+    def test_needs_reconversion_false_has_slides(self):
+        """Test método needs_reconversion cuando tiene slides"""
+        pdf_content = b'%PDF-1.4\nfake pdf content'
+        pdf_file = SimpleUploadedFile(
+            "test.pdf",
+            pdf_content,
+            content_type="application/pdf"
+        )
+
+        presentation = Presentation.objects.create(
+            title="Con slides",
+            pdf_file=pdf_file,
+            is_converted=True,
+            total_slides=2
+        )
+
+        # Crear slides
+        Slide.objects.create(presentation=presentation, slide_number=1)
+        Slide.objects.create(presentation=presentation, slide_number=2)
+
+        assert presentation.needs_reconversion() is False
+
+    def test_delete_files_method(self):
+        """Test método delete_files"""
+        import tempfile
+        import os
+        from unittest.mock import patch
+
+        presentation = Presentation.objects.create(title="Test delete files")
+
+        # Crear slide asociado
+        slide = Slide.objects.create(
+            presentation=presentation,
+            slide_number=1
+        )
+
+        # Mock para simular archivos existentes
+        with patch('os.path.exists', return_value=True), \
+             patch('os.remove') as mock_remove:
+
+            presentation.delete_files()
+
+            # Verificar que se intentó eliminar archivos
+            # (os.remove se llama para cada archivo que existe)
+            assert mock_remove.called
+
+    def test_delete_files_method_nonexistent_files(self):
+        """Test método delete_files con archivos inexistentes"""
+        presentation = Presentation.objects.create(title="Test no files")
+
+        # No debería fallar aunque no haya archivos
+        presentation.delete_files()
+
+    def test_delete_override_calls_delete_files(self):
+        """Test que el método delete override llama a delete_files"""
+        from unittest.mock import patch
+
+        presentation = Presentation.objects.create(title="Test delete override")
+
+        with patch.object(presentation, 'delete_files') as mock_delete_files:
+            presentation.delete()
+
+            # Verificar que se llamó delete_files
+            mock_delete_files.assert_called_once()
+
+        # Verificar que la presentación fue eliminada
+        assert not Presentation.objects.filter(pk=presentation.pk).exists()
+
+
+@pytest.mark.django_db
+class TestSlideModelMethods:
+    """Tests para métodos adicionales del modelo Slide"""
+
+    def test_image_size_mb_property_with_file(self):
+        """Test propiedad image_size_mb con archivo"""
+        from django.core.files.base import ContentFile
+
+        presentation = Presentation.objects.create(title="Test")
+
+        # Crear contenido de imagen simulado (~1MB)
+        image_content = b'fake image data' * (1024 * 70)  # ~1MB aprox
+        image_file = ContentFile(image_content, name="test.png")
+
+        slide = Slide.objects.create(
+            presentation=presentation,
+            slide_number=1,
+            image_file=image_file
+        )
+
+        # Verificar que el tamaño es aproximadamente 1MB
+        assert slide.image_size_mb >= 0.5
+        assert slide.image_size_mb <= 1.5
+
+
 # ===============================================================================
 # TUTORIAL RÁPIDO - Cómo usar estos tests:
 # ===============================================================================
