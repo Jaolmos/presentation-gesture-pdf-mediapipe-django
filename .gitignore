@@ -107,6 +107,9 @@ celerybeat.pid
 .env.production
 .env.staging
 .env.*.local
+
+# Claude Code configuration
+CLAUDE.md
 .venv
 env/
 venv/
