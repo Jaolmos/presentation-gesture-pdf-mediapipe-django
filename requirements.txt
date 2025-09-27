@@ -10,5 +10,6 @@ pluggy==1.6.0
 Pygments==2.19.2
 pytest==8.4.2
 pytest-django==4.11.1
+python-dotenv==1.0.1
 sqlparse==0.5.3
 tzdata==2025.2
