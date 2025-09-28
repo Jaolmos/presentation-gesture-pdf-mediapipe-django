@@ -1,0 +1,155 @@
+# Docker Compose para desarrollo local de SlideMotion
+# Configuración profesional con PostgreSQL, Redis y Celery
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: slidemotion_db_dev
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Volumen persistente para datos de PostgreSQL
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - slidemotion_network
+
+  # Cache y message broker Redis
+  redis:
+    image: redis:7.2-alpine
+    container_name: slidemotion_redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      # Volumen persistente para datos de Redis
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - slidemotion_network
+
+  # Aplicación Django principal
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slidemotion_web_dev
+    ports:
+      - "8000:8000"
+    volumes:
+      # Código fuente montado para desarrollo (hot reload)
+      - .:/app
+      # Volúmenes para archivos estáticos y media
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      # Variables de entorno desde archivo .env
+      - DJANGO_SETTINGS_MODULE=slidemotion.settings
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_ENGINE=${DB_ENGINE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - slidemotion_network
+
+  # Worker de Celery para tareas asíncronas
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slidemotion_celery_dev
+    volumes:
+      # Mismo código que la aplicación web
+      - .:/app
+      - media_volume:/app/media
+    environment:
+      # Mismas variables de entorno que web
+      - DJANGO_SETTINGS_MODULE=slidemotion.settings
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_ENGINE=${DB_ENGINE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    command: celery -A slidemotion worker --loglevel=info --concurrency=2
+    networks:
+      - slidemotion_network
+
+  # Monitor de Celery (opcional)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slidemotion_flower_dev
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - redis
+      - celery
+    command: celery -A slidemotion flower --port=5555
+    networks:
+      - slidemotion_network
+
+# Volúmenes persistentes
+volumes:
+  postgres_data:
+    name: slidemotion_postgres_data_dev
+  redis_data:
+    name: slidemotion_redis_data_dev
+  static_volume:
+    name: slidemotion_static_dev
+  media_volume:
+    name: slidemotion_media_dev
+
+# Red personalizada para comunicación entre servicios
+networks:
+  slidemotion_network:
+    name: slidemotion_network_dev
+    driver: bridge

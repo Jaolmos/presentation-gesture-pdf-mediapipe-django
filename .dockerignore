@@ -1,0 +1,68 @@
+# Archivos y directorios a excluir del contexto Docker
+
+# Git
+.git
+.gitignore
+
+# Entornos virtuales de Python
+venv/
+.venv/
+env/
+ENV/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Base de datos local
+*.sqlite3
+db.sqlite3
+
+# Archivos de entorno (contienen secrets)
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS específicos
+.DS_Store
+Thumbs.db
+
+# Media files (desarrollo)
+media/
+
+# Static files (se generan en build)
+staticfiles/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node modules (si usas frontend tools)
+node_modules/
+npm-debug.log
+
+# Documentación temporal
+README.md
+resumen.md
+
+# Docker específico
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Otros archivos de desarrollo
+.editorconfig

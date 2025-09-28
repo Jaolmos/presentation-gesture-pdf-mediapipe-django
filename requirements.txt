@@ -1,15 +1,42 @@
-asgiref==3.9.1
-colorama==0.4.6
+# Django Framework
 Django==5.2
 django-widget-tweaks==1.5.0
-iniconfig==2.1.0
-packaging==25.0
+
+# Base de datos PostgreSQL
+psycopg2-binary==2.9.9
+
+# Cache y message broker Redis
+redis==5.0.8
+
+# Task queue Celery
+celery[redis]==5.3.6
+flower==2.0.1
+
+# WSGI Server
+gunicorn==21.2.0
+
+# Environment management
+python-dotenv==1.0.1
+
+# PDF processing
 pdf2image==1.17.0
 pillow==11.3.0
-pluggy==1.6.0
-Pygments==2.19.2
+
+# Development y testing
 pytest==8.4.2
 pytest-django==4.11.1
-python-dotenv==1.0.1
+pytest-cov==4.0.0
+
+# Utilities
+colorama==0.4.6
+Pygments==2.19.2
+
+# Django dependencies
+asgiref==3.9.1
 sqlparse==0.5.3
 tzdata==2025.2
+
+# Testing dependencies
+iniconfig==2.1.0
+packaging==25.0
+pluggy==1.6.0
