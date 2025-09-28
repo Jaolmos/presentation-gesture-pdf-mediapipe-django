@@ -6,6 +6,7 @@ from django.http import Http404, JsonResponse
 from .models import Presentation
 from .forms import PresentationUploadForm
 from .services import PDFProcessor, PDFConversionError
+from .tasks import convert_pdf_to_slides
 
 
 @login_required
@@ -53,23 +54,32 @@ def upload_presentation(request):
         if form.is_valid():
             presentation = form.save()
 
-            # Intentar conversión inmediata del PDF
+            # Lanzar tarea Celery para conversión asíncrona
             try:
-                slides = PDFProcessor.convert_pdf_to_images(presentation)
+                # Cambiar estado a procesando
+                presentation.processing_status = 'processing'
+
+                # Lanzar tarea Celery asíncrona
+                task = convert_pdf_to_slides.delay(presentation.id)
+
+                # Guardar task_id si está disponible
+                if hasattr(task, 'id') and task.id:
+                    presentation.task_id = task.id
+
+                presentation.save()
+
                 messages.success(
                     request,
-                    f'Presentación "{presentation.title}" cargada y convertida exitosamente. '
-                    f'{len(slides)} slides creados.'
-                )
-            except PDFConversionError as e:
-                messages.warning(
-                    request,
-                    f'Presentación "{presentation.title}" cargada, pero hubo un error en la conversión: {str(e)}'
+                    f'Presentación "{presentation.title}" cargada exitosamente. '
+                    f'La conversión a slides se está procesando en segundo plano.'
                 )
             except Exception as e:
-                messages.warning(
+                # Si falla la tarea Celery, marcar como error
+                presentation.processing_status = 'failed'
+                presentation.save()
+                messages.error(
                     request,
-                    f'Presentación "{presentation.title}" cargada, pero hubo un error inesperado: {str(e)}'
+                    f'Presentación "{presentation.title}" cargada, pero hubo un error al iniciar el procesamiento: {str(e)}'
                 )
 
             return redirect('presentations:presentation_detail', pk=presentation.pk)
@@ -100,18 +110,31 @@ def upload_presentation_htmx(request):
         if form.is_valid():
             presentation = form.save()
 
-            # Intentar conversión inmediata del PDF
+            # Lanzar tarea Celery para conversión asíncrona
             conversion_message = ""
             conversion_status = "success"
 
             try:
-                slides = PDFProcessor.convert_pdf_to_images(presentation)
-                conversion_message = f'Presentación "{presentation.title}" cargada y convertida exitosamente. {len(slides)} slides creados.'
-            except PDFConversionError as e:
-                conversion_message = f'Presentación "{presentation.title}" cargada, pero hubo un error en la conversión: {str(e)}'
-                conversion_status = "warning"
+                # Cambiar estado a procesando
+                presentation.processing_status = 'processing'
+
+                # Lanzar tarea Celery asíncrona
+                task = convert_pdf_to_slides.delay(presentation.id)
+
+                # Guardar task_id si está disponible
+                if hasattr(task, 'id') and task.id:
+                    presentation.task_id = task.id
+
+                presentation.save()
+
+                conversion_message = f'Presentación "{presentation.title}" cargada exitosamente. La conversión a slides se está procesando en segundo plano.'
+                conversion_status = "info"
+
             except Exception as e:
-                conversion_message = f'Presentación "{presentation.title}" cargada, pero hubo un error inesperado: {str(e)}'
+                # Si falla la tarea Celery, marcar como error
+                presentation.processing_status = 'failed'
+                presentation.save()
+                conversion_message = f'Presentación "{presentation.title}" cargada, pero hubo un error al iniciar el procesamiento: {str(e)}'
                 conversion_status = "warning"
 
             context = {

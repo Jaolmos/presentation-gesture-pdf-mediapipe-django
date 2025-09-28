@@ -28,6 +28,28 @@ class Presentation(models.Model):
         help_text="Indica si el PDF ya fue convertido a imágenes"
     )
 
+    # Estados de procesamiento
+    PROCESSING_STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('processing', 'Procesando'),
+        ('completed', 'Completado'),
+        ('failed', 'Error'),
+    ]
+
+    processing_status = models.CharField(
+        max_length=20,
+        choices=PROCESSING_STATUS_CHOICES,
+        default='pending',
+        help_text="Estado actual del procesamiento del PDF"
+    )
+
+    task_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="ID de la tarea Celery para seguimiento"
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Fecha y hora de creación"
