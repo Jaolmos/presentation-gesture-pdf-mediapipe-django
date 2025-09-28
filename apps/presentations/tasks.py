@@ -75,10 +75,7 @@ def convert_pdf_to_slides(self, presentation_id: int) -> dict:
             images = convert_from_path(
                 pdf_path,
                 dpi=DPI,
-                fmt=FORMAT.lower(),
-                thread_count=1,
-                use_pdftoppm=True,
-                strict=False
+                fmt=FORMAT.lower()
             )
         except Exception as e:
             raise PDFConversionError(f"Error al convertir PDF: {str(e)}")
@@ -135,12 +132,11 @@ def convert_pdf_to_slides(self, presentation_id: int) -> dict:
                 with transaction.atomic():
                     slide = Slide.objects.create(
                         presentation=presentation,
-                        page_number=page_num,
-                        title=f"Slide {page_num}"
+                        slide_number=page_num
                     )
 
                     # Guardar imagen
-                    slide.image.save(
+                    slide.image_file.save(
                         filename,
                         ContentFile(image_io.getvalue()),
                         save=True
