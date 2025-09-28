@@ -191,6 +191,11 @@ X_FRAME_OPTIONS = 'DENY'
 MAX_UPLOAD_SIZE = int(os.getenv('MAX_UPLOAD_SIZE', '52428800'))  # 50MB default
 ALLOWED_UPLOAD_EXTENSIONS = [ext.strip() for ext in os.getenv('ALLOWED_UPLOAD_EXTENSIONS', 'pdf').split(',')]
 
+# Authentication settings
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Email settings (base configuration)
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')

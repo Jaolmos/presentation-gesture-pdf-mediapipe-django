@@ -52,6 +52,24 @@
                     </svg>
                     Subir PDF
                 </a>
+
+                <!-- Menú de usuario -->
+                <div class="relative ml-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-600 hidden sm:block">{{ user.username }}</span>
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                   class="inline-flex items-center gap-2 text-gray-600 hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
+                                   title="Cerrar sesión">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                <span class="hidden sm:inline">Salir</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

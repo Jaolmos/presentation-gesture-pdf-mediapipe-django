@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
 from .models import Presentation
@@ -7,6 +8,7 @@ from .forms import PresentationUploadForm
 from .services import PDFProcessor, PDFConversionError
 
 
+@login_required
 def home(request):
     """Vista principal - Lista de presentaciones y formulario de carga"""
     presentations = Presentation.objects.all()
@@ -24,6 +26,7 @@ def home(request):
     return render(request, 'presentations/home.html', context)
 
 
+@login_required
 def home_content(request):
     """Vista para cargar contenido de la página de inicio dinámicamente"""
     presentations = Presentation.objects.all()
@@ -41,6 +44,7 @@ def home_content(request):
     return render(request, 'presentations/partials/home_content.html', context)
 
 
+@login_required
 def upload_presentation(request):
     """Vista para cargar nuevas presentaciones"""
     if request.method == 'POST':
@@ -87,6 +91,7 @@ def upload_presentation(request):
     return render(request, 'presentations/upload.html', context)
 
 
+@login_required
 def upload_presentation_htmx(request):
     """Vista HTMX para cargar presentaciones con conversión inmediata"""
     if request.method == 'POST':
@@ -134,6 +139,7 @@ def upload_presentation_htmx(request):
     return render(request, 'presentations/partials/upload_form.html', context)
 
 
+@login_required
 def presentation_detail(request, pk):
     """Vista de detalle de una presentación"""
     presentation = get_object_or_404(Presentation, pk=pk)
@@ -146,6 +152,7 @@ def presentation_detail(request, pk):
     return render(request, 'presentations/detail.html', context)
 
 
+@login_required
 def presentation_list(request):
     """Vista de lista de presentaciones (alternativa a home)"""
     presentations = Presentation.objects.all()
@@ -176,6 +183,7 @@ def presentation_list(request):
     return render(request, 'presentations/list.html', context)
 
 
+@login_required
 def presentation_list_content(request):
     """Vista para cargar contenido de lista de presentaciones dinámicamente"""
     presentations = Presentation.objects.all()
@@ -205,6 +213,7 @@ def presentation_list_content(request):
     return render(request, 'presentations/partials/list_content.html', context)
 
 
+@login_required
 def delete_presentation(request, pk):
     """Vista para eliminar una presentación con confirmación"""
     presentation = get_object_or_404(Presentation, pk=pk)
@@ -234,6 +243,7 @@ def delete_presentation(request, pk):
     return render(request, 'presentations/delete_confirm.html', context)
 
 
+@login_required
 def delete_presentation_htmx(request, pk):
     """Vista HTMX para eliminar presentación con confirmación"""
     presentation = get_object_or_404(Presentation, pk=pk)
@@ -263,6 +273,7 @@ def delete_presentation_htmx(request, pk):
     return render(request, 'presentations/partials/delete_confirm_content.html', context)
 
 
+@login_required
 def camera_config(request):
     """Vista de configuración de cámara y gestos"""
     context = {
@@ -272,6 +283,7 @@ def camera_config(request):
     return render(request, 'presentations/camera_config.html', context)
 
 
+@login_required
 def presentation_mode(request, pk):
     """Vista principal del modo presentación fullscreen"""
     presentation = get_object_or_404(Presentation, pk=pk)
@@ -299,6 +311,7 @@ def presentation_mode(request, pk):
     return render(request, 'presentations/presentation_mode.html', context)
 
 
+@login_required
 def presentation_slide(request, pk, slide_number):
     """Vista AJAX para cambiar de slide en modo presentación"""
     presentation = get_object_or_404(Presentation, pk=pk)
