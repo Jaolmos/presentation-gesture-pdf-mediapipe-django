@@ -1,6 +1,5 @@
 # Docker Compose para desarrollo local de SlideMotion
 # Configuración profesional con PostgreSQL, Redis y Celery
-version: '3.8'
 
 services:
   # Base de datos PostgreSQL
