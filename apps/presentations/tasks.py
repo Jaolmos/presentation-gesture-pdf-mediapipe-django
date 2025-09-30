@@ -149,6 +149,12 @@ def convert_pdf_to_slides(self, presentation_id: int) -> dict:
                 logger.error(f"Error creando slide {page_num}: {str(e)}")
                 continue
 
+        # Actualizar estado de la presentación a completado
+        with transaction.atomic():
+            presentation.processing_status = 'completed'
+            presentation.is_converted = True
+            presentation.save(update_fields=['processing_status', 'is_converted'])
+
         # Resultado final
         result = {
             'presentation_id': presentation_id,
@@ -161,8 +167,23 @@ def convert_pdf_to_slides(self, presentation_id: int) -> dict:
         logger.info(f"Conversión completada: {len(slides_created)} slides de {total_pages} páginas")
         return result
 
-    except PDFConversionError:
+    except PDFConversionError as e:
+        # Marcar presentación como fallida
+        try:
+            presentation = Presentation.objects.get(id=presentation_id)
+            presentation.processing_status = 'failed'
+            presentation.save(update_fields=['processing_status'])
+            logger.error(f"Presentación marcada como fallida: {str(e)}")
+        except Exception as save_error:
+            logger.error(f"Error al actualizar estado fallido: {str(save_error)}")
         raise
     except Exception as e:
-        logger.error(f"Error inesperado en conversión PDF: {str(e)}")
+        # Marcar presentación como fallida
+        try:
+            presentation = Presentation.objects.get(id=presentation_id)
+            presentation.processing_status = 'failed'
+            presentation.save(update_fields=['processing_status'])
+            logger.error(f"Error inesperado - presentación marcada como fallida: {str(e)}")
+        except Exception as save_error:
+            logger.error(f"Error al actualizar estado fallido: {str(save_error)}")
         raise PDFConversionError(f"Error inesperado: {str(e)}")

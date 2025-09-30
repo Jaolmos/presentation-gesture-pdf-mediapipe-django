@@ -53,6 +53,8 @@ services:
     volumes:
       # Código fuente montado para desarrollo (hot reload)
       - .:/app
+      # Excluir node_modules para evitar conflictos de binarios entre Windows y Linux
+      - /app/theme/static_src/node_modules
       # Volúmenes para archivos estáticos y media
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -134,6 +136,24 @@ services:
       - redis
       - celery
     command: celery -A slidemotion flower --port=5555
+    networks:
+      - slidemotion_network
+
+  # Watcher de Tailwind CSS para desarrollo
+  tailwind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slidemotion_tailwind_dev
+    volumes:
+      # Mismo código que la aplicación web para hot reload
+      - .:/app
+      # Excluir node_modules para evitar conflictos de binarios entre Windows y Linux
+      - /app/theme/static_src/node_modules
+    environment:
+      - DJANGO_SETTINGS_MODULE=slidemotion.settings
+      - ENVIRONMENT=${ENVIRONMENT}
+    command: python manage.py tailwind start
     networks:
       - slidemotion_network
 

@@ -42,6 +42,9 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'widget_tweaks',
+    'tailwind',
+    'theme',
+    'django_browser_reload',
 ]
 
 LOCAL_APPS = [
@@ -58,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
 
 ROOT_URLCONF = 'slidemotion.urls'
@@ -249,3 +253,13 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# Tailwind CSS configuration
+TAILWIND_APP_NAME = 'theme'
+# NPM path - detectar automáticamente según el sistema operativo
+import platform
+if platform.system() == 'Windows':
+    NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+else:
+    # En Linux/Docker npm está en el PATH
+    NPM_BIN_PATH = 'npm'

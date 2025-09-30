@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Instalar dependencias del sistema necesarias para PostgreSQL y procesamiento PDF
+# Instalar dependencias del sistema necesarias para PostgreSQL, procesamiento PDF y Node.js
 RUN apt-get update && apt-get install -y \
     # Librerías cliente de PostgreSQL
     libpq-dev \
@@ -18,6 +18,10 @@ RUN apt-get update && apt-get install -y \
     g++ \
     # Herramientas de red útiles para debugging
     netcat-openbsd \
+    # Node.js y npm para Tailwind CSS
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     # Limpiar caché de apt
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -43,6 +47,16 @@ RUN pip install -r requirements.txt
 
 # Copiar código de la aplicación
 COPY . .
+
+# Instalar dependencias Node.js para Tailwind CSS (como root antes de cambiar usuario)
+# Usamos --legacy-peer-deps para evitar conflictos y reinstalamos para obtener binarios de Linux
+RUN cd theme/static_src && \
+    rm -rf node_modules package-lock.json && \
+    npm install && \
+    cd ../..
+
+# Compilar CSS de Tailwind para producción
+RUN python manage.py tailwind build
 
 # Cambiar permisos de todos los archivos al usuario appuser
 RUN chown -R appuser:appuser /app
