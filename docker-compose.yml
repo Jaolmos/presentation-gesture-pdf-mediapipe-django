@@ -131,10 +131,11 @@ services:
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
     depends_on:
       - redis
       - celery
-    command: celery -A slidemotion flower --port=5555
+    command: celery -A slidemotion flower --port=5555 --basic_auth=${FLOWER_BASIC_AUTH}
     networks:
       - slidemotion_network
 
