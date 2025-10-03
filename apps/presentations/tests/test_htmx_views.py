@@ -12,9 +12,10 @@ from apps.presentations.models import Presentation, Slide
 class TestHTMXViews:
     """Tests para las vistas HTMX."""
 
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def setup(self, authenticated_client):
         """Configuración que se ejecuta antes de cada test."""
-        self.client = Client()
+        self.client = authenticated_client
 
     def test_upload_presentation_htmx_get(self):
         """Test GET de vista HTMX de carga - devolver formulario limpio."""
@@ -92,8 +93,10 @@ class TestHTMXViews:
 
         assert response.status_code == 200
         assert response.context['success'] is True
-        assert response.context['status'] == 'warning'
-        assert 'error' in response.context['message'].lower()
+        # Con procesamiento asíncrono Celery, el status es 'info' porque la carga es exitosa
+        # La conversión fallará luego en el worker de Celery
+        assert response.context['status'] == 'info'
+        assert 'procesamiento' in response.context['message'].lower() or 'cargada' in response.context['message'].lower()
 
     def test_home_content_view_no_presentations(self):
         """Test de vista HTMX de contenido home sin presentaciones."""

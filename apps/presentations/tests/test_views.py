@@ -16,9 +16,10 @@ from apps.presentations.models import Presentation, Slide
 class TestPresentationViews:
     """Tests para las vistas de presentaciones."""
 
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def setup(self, authenticated_client):
         """Configuración que se ejecuta antes de cada test."""
-        self.client = Client()
+        self.client = authenticated_client
 
     def test_home_view_no_presentations(self):
         """Test de vista home sin presentaciones."""

@@ -288,27 +288,44 @@ class TestPresentationModelMethods:
 
     def test_delete_files_method(self):
         """Test método delete_files"""
-        import tempfile
-        import os
         from unittest.mock import patch
+        from django.core.files.uploadedfile import SimpleUploadedFile
 
-        presentation = Presentation.objects.create(title="Test delete files")
+        # Crear presentación con archivo PDF
+        pdf_content = b'%PDF-1.4\nfake pdf content'
+        pdf_file = SimpleUploadedFile("test.pdf", pdf_content, content_type="application/pdf")
 
-        # Crear slide asociado
-        slide = Slide.objects.create(
-            presentation=presentation,
-            slide_number=1
+        presentation = Presentation.objects.create(
+            title="Test delete files",
+            pdf_file=pdf_file
         )
 
-        # Mock para simular archivos existentes
-        with patch('os.path.exists', return_value=True), \
-             patch('os.remove') as mock_remove:
+        # Crear slide asociado con imagen
+        from PIL import Image
+        import io
+        from django.core.files.base import ContentFile
+
+        image = Image.new('RGB', (100, 100), color=(100, 50, 150))
+        buffer = io.BytesIO()
+        image.save(buffer, format='PNG')
+        buffer.seek(0)
+        image_content = ContentFile(buffer.read(), name='slide_1.png')
+
+        slide = Slide.objects.create(
+            presentation=presentation,
+            slide_number=1,
+            image_file=image_content
+        )
+
+        # Mock para simular archivos existentes y eliminarlos
+        with patch('apps.presentations.models.os.path.exists', return_value=True), \
+             patch('apps.presentations.models.os.remove') as mock_remove:
 
             presentation.delete_files()
 
-            # Verificar que se intentó eliminar archivos
-            # (os.remove se llama para cada archivo que existe)
+            # Verificar que se intentó eliminar archivos (PDF + slide image)
             assert mock_remove.called
+            assert mock_remove.call_count >= 1
 
     def test_delete_files_method_nonexistent_files(self):
         """Test método delete_files con archivos inexistentes"""
