@@ -1,0 +1,254 @@
+# Docker Compose para SlideMotion - PRODUCCIÓN
+# Incluye Traefik como proxy inverso con SSL automático (Let's Encrypt)
+
+version: '3.8'
+
+services:
+  # Traefik - Proxy inverso con SSL automático
+  traefik:
+    image: traefik:v3.2
+    container_name: slidemotion_traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Socket de Docker para descubrimiento automático de servicios
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Certificados Let's Encrypt persistentes
+      - ./traefik/letsencrypt:/letsencrypt
+      # Logs de Traefik
+      - ./traefik/logs:/var/log/traefik
+    command:
+      # API y Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+
+      # Providers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+
+      # Let's Encrypt configuración
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      # Descomentar para testing (staging de Let's Encrypt - no límites de rate)
+      # - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+
+      # Logs
+      - "--log.level=INFO"
+      - "--log.filepath=/var/log/traefik/traefik.log"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+
+      # Métricas (opcional)
+      - "--metrics.prometheus=true"
+
+    labels:
+      # Habilitar Traefik para sí mismo
+      - "traefik.enable=true"
+
+      # Dashboard de Traefik
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+
+      # Autenticación básica para dashboard
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
+
+    environment:
+      - TZ=${TIME_ZONE:-Europe/Madrid}
+
+  # PostgreSQL - Base de datos
+  db:
+    image: postgres:16-alpine
+    container_name: slidemotion_db
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - TZ=${TIME_ZONE:-Europe/Madrid}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Cache y Celery broker
+  redis:
+    image: redis:7-alpine
+    container_name: slidemotion_redis
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - TZ=${TIME_ZONE:-Europe/Madrid}
+
+  # Django Web Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: slidemotion_web
+    restart: unless-stopped
+    networks:
+      - proxy
+      - backend
+    volumes:
+      # Media files (PDFs y slides convertidos)
+      - media_files:/app/media
+      # Logs de la aplicación
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=slidemotion.settings.production
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - TZ=${TIME_ZONE:-Europe/Madrid}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    labels:
+      # Habilitar Traefik
+      - "traefik.enable=true"
+
+      # Router principal
+      - "traefik.http.routers.slidemotion.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
+      - "traefik.http.routers.slidemotion.entrypoints=websecure"
+      - "traefik.http.routers.slidemotion.tls=true"
+      - "traefik.http.routers.slidemotion.tls.certresolver=letsencrypt"
+
+      # Servicio
+      - "traefik.http.services.slidemotion.loadbalancer.server.port=8000"
+
+      # Middlewares de seguridad
+      - "traefik.http.middlewares.slidemotion-headers.headers.customResponseHeaders.X-Frame-Options=DENY"
+      - "traefik.http.middlewares.slidemotion-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.slidemotion-headers.headers.customResponseHeaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.middlewares.slidemotion-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.slidemotion-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.slidemotion-headers.headers.stsPreload=true"
+
+      # Aplicar middlewares
+      - "traefik.http.routers.slidemotion.middlewares=slidemotion-headers@docker"
+
+  # Celery Worker - Procesamiento de PDFs asíncrono
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: slidemotion_celery
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - media_files:/app/media
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=slidemotion.settings.production
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - TZ=${TIME_ZONE:-Europe/Madrid}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A slidemotion worker --loglevel=info --concurrency=2
+
+  # Flower - Monitoreo de Celery (OPCIONAL - comentar si no se necesita)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: slidemotion_flower
+    restart: unless-stopped
+    networks:
+      - proxy
+      - backend
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=slidemotion.settings.production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
+      - TZ=${TIME_ZONE:-Europe/Madrid}
+    depends_on:
+      - redis
+      - celery
+    command: celery -A slidemotion flower --port=5555
+
+    labels:
+      # Habilitar Traefik
+      - "traefik.enable=true"
+
+      # Router para Flower
+      - "traefik.http.routers.flower.rule=Host(`flower.${DOMAIN}`)"
+      - "traefik.http.routers.flower.entrypoints=websecure"
+      - "traefik.http.routers.flower.tls=true"
+      - "traefik.http.routers.flower.tls.certresolver=letsencrypt"
+
+      # Servicio
+      - "traefik.http.services.flower.loadbalancer.server.port=5555"
+
+networks:
+  # Red pública para Traefik
+  proxy:
+    name: proxy
+    driver: bridge
+
+  # Red privada para backend
+  backend:
+    name: backend
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+  redis_data:
+    driver: local
+
+  media_files:
+    driver: local

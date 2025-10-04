@@ -1,0 +1,99 @@
+# Dockerfile para SlideMotion - Producción
+# Multi-stage build para optimizar tamaño de imagen
+
+# Etapa 1: Builder - Compilar dependencias y assets
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Instalar dependencias del sistema necesarias para compilación
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    g++ \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Instalar dependencias Python
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --user -r requirements.txt
+
+# Copiar código fuente
+COPY . .
+
+# Instalar y compilar Tailwind CSS
+RUN cd theme/static_src && \
+    npm ci --production && \
+    cd ../..
+
+# Compilar CSS de Tailwind para producción
+RUN python manage.py tailwind build
+
+# Recopilar archivos estáticos
+RUN python manage.py collectstatic --noinput
+
+
+# Etapa 2: Runtime - Imagen final optimizada
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=slidemotion.settings.production
+
+# Instalar solo dependencias runtime necesarias
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    poppler-utils \
+    netcat-openbsd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+WORKDIR /app
+
+# Crear directorios necesarios
+RUN mkdir -p /app/staticfiles /app/media /app/logs \
+    && chown -R appuser:appuser /app
+
+# Copiar dependencias Python instaladas desde builder
+COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
+
+# Copiar código y assets compilados desde builder
+COPY --from=builder --chown=appuser:appuser /app /app
+
+# Añadir directorio de paquetes Python al PATH
+ENV PATH=/home/appuser/.local/bin:$PATH
+
+# Cambiar al usuario no-root
+USER appuser
+
+# Exponer puerto 8000
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD nc -z localhost 8000 || exit 1
+
+# Comando por defecto: Gunicorn con configuración para producción
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "4", \
+     "--worker-class", "sync", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "50", \
+     "--timeout", "60", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--log-level", "info", \
+     "slidemotion.wsgi:application"]
