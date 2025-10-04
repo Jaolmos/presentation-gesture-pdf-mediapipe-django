@@ -190,6 +190,10 @@ Para desplegar en producción con Traefik y SSL automático:
    ./deploy.sh --first-install
    ```
 
+## Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
 ## Autor
 
 Desarrollado por **José Antonio Olmos**
