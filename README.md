@@ -71,21 +71,34 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-### Ejecutar migraciones
+### Ejecutar migraciones y crear superusuario
 
 ```bash
 # Aplicar migraciones de base de datos
 docker-compose exec web python manage.py migrate
 
-# Crear superusuario
+# Crear superusuario para acceder al panel de administración
 docker-compose exec web python manage.py createsuperuser
 ```
+
+Sigue las instrucciones para crear tu cuenta de administrador (nombre de usuario, email y contraseña).
 
 ### Acceder a la aplicación
 
 - **Aplicación principal**: http://localhost:8000
-- **Django Admin**: http://localhost:8000/admin/
+- **Django Admin**: http://localhost:8000/admin/ (usa las credenciales del superusuario)
 - **Flower (monitor Celery)**: http://localhost:5555
+
+### Panel de Administración Django
+
+El panel de administración de Django te permite:
+- Gestionar usuarios y permisos
+- Ver y editar presentaciones directamente
+- Administrar slides de cada presentación
+- Monitorear el contenido de la base de datos
+- Realizar operaciones de mantenimiento
+
+Accede con las credenciales del superusuario que creaste anteriormente.
 
 ### Comandos útiles
 
