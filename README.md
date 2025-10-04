@@ -47,8 +47,8 @@ SlideMotion es una aplicación web Django que permite controlar presentaciones P
 ### Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/slidemotion.git
-cd slidemotion
+git clone https://github.com/Jaolmos/pdf-django-presentation-gesture-mediapipe.git
+cd pdf-django-presentation-gesture-mediapipe
 ```
 
 ### Configurar variables de entorno
