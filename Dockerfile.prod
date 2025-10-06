@@ -32,7 +32,7 @@ COPY . .
 
 # Instalar y compilar Tailwind CSS
 RUN cd theme/static_src && \
-    npm ci --production && \
+    npm ci && \
     cd ../..
 
 # Crear directorio de logs para evitar errores durante build
