@@ -35,6 +35,9 @@ RUN cd theme/static_src && \
     npm ci --production && \
     cd ../..
 
+# Crear directorio de logs para evitar errores durante build
+RUN mkdir -p /app/logs
+
 # Compilar CSS de Tailwind para producción
 RUN python manage.py tailwind build
 
