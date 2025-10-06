@@ -92,15 +92,7 @@ X_FRAME_OPTIONS = 'DENY'
 # CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")
 # CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
-# Logging for production
-LOGGING['handlers']['file'] = {
-    'class': 'logging.handlers.RotatingFileHandler',
-    'filename': os.getenv('LOG_FILE', str(BASE_DIR / 'logs' / 'django.log')),
-    'maxBytes': 1024*1024*15,  # 15MB
-    'backupCount': 10,
-    'formatter': 'verbose',
-}
-
+# Logging for production (solo consola, sin archivo para evitar problemas de permisos)
 LOGGING['handlers']['console']['level'] = 'WARNING'
 LOGGING['loggers']['django']['level'] = 'WARNING'
 LOGGING['loggers']['apps']['level'] = 'INFO'
