@@ -8,6 +8,7 @@ psycopg2-binary==2.9.9
 
 # Cache y message broker Redis
 redis==5.0.8
+django-redis==5.4.0
 
 # Task queue Celery
 celery[redis]==5.3.6
@@ -15,6 +16,9 @@ flower==2.0.1
 
 # WSGI Server
 gunicorn==21.2.0
+
+# Static files
+whitenoise==6.6.0
 
 # Environment management
 python-dotenv==1.0.1
