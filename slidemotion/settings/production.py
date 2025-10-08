@@ -92,11 +92,9 @@ X_FRAME_OPTIONS = 'DENY'
 # CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")
 # CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
-# Logging for production (solo consola para evitar problemas de permisos en Docker)
+# Logging for production (solo consola - sin archivos por permisos en Docker)
 LOGGING['handlers']['console']['level'] = 'WARNING'
-LOGGING['loggers']['django']['handlers'] = ['console']  # Remover 'file' handler
 LOGGING['loggers']['django']['level'] = 'WARNING'
-LOGGING['loggers']['apps']['handlers'] = ['console']  # Remover 'file' handler
 LOGGING['loggers']['apps']['level'] = 'INFO'
 
 # Admin security
