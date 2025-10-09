@@ -22,6 +22,7 @@
                 </div>
 
                 <!-- Enlaces rápidos -->
+                {% if user.is_authenticated %}
                 <div class="flex items-center gap-6 text-sm">
                     <a href="{% url 'presentations:home' %}"
                        class="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200">
@@ -36,6 +37,7 @@
                         Configuración
                     </a>
                 </div>
+                {% endif %}
             </div>
 
             <!-- Línea separadora -->

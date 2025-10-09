@@ -19,6 +19,7 @@
             </div>
 
             <!-- Navigation links -->
+            {% if user.is_authenticated %}
             <div class="flex items-center space-x-2">
                 <a href="{% url 'presentations:home' %}"
                    class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200">
@@ -71,6 +72,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </nav>
