@@ -153,7 +153,8 @@ def convert_pdf_to_slides(self, presentation_id: int) -> dict:
         with transaction.atomic():
             presentation.processing_status = 'completed'
             presentation.is_converted = True
-            presentation.save(update_fields=['processing_status', 'is_converted'])
+            presentation.total_slides = len(slides_created)
+            presentation.save(update_fields=['processing_status', 'is_converted', 'total_slides'])
 
         # Resultado final
         result = {
