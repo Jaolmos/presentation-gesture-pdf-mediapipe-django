@@ -27,9 +27,12 @@ urlpatterns = [
     path('', include('apps.presentations.urls')),
 ]
 
-# Servir archivos media y estáticos en desarrollo
+# Servir archivos media (uploads de usuarios) en todos los entornos
+# Nota: En producción sin nginx, Django debe servir estos archivos
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Servir archivos estáticos y browser reload solo en desarrollo
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     # Browser reload para desarrollo con Tailwind
     urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]
