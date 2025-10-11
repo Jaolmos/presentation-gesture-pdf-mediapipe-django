@@ -30,6 +30,7 @@ SlideMotion es una aplicación web Django que permite controlar presentaciones P
 - Docker + Docker Compose
 - Traefik v3.2 (proxy inverso + SSL automático)
 - Gunicorn (servidor WSGI producción)
+- WhiteNoise (servir archivos estáticos en producción)
 - Flower (monitoreo Celery)
 
 ## Capturas de pantalla
@@ -189,54 +190,6 @@ slidemotion/
 
 ## Despliegue en producción
 
-### Estado actual: ✅ DESPLEGADO Y FUNCIONANDO
-
-**URL de producción**: https://slidemotion.duckdns.org
-
-**Servicios en producción:**
-- ✅ Aplicación web Django + Gunicorn
-- ✅ PostgreSQL 16 (base de datos)
-- ✅ Redis 7 (cache + broker Celery)
-- ✅ Celery worker (procesamiento asíncrono)
-- ✅ Traefik v3.2 (proxy inverso + SSL/HTTPS automático)
-- ⚠️ Flower (monitor Celery - SSL pendiente)
-
-**Características implementadas:**
-- ✅ SSL/HTTPS con Let's Encrypt (renovación automática)
-- ✅ Autenticación de usuarios requerida
-- ✅ Menú de navegación oculto para usuarios no autenticados
-- ✅ Procesamiento asíncrono de PDFs con Celery
-- ✅ Archivos estáticos servidos con WhiteNoise
-- ✅ Cache Redis para sesiones y rendimiento
-
-### Calidad del código
-
-**Puntuación general**: 82/100 (Nivel MEDIO-ALTO)
-
-- **Tests**: 10/10 - 133 tests pasando, 90%+ cobertura
-- **Seguridad**: 8/10 - Excelente base con mejoras pendientes
-- **Arquitectura**: 9/10 - Muy bien organizado
-- **Docker/Infraestructura**: 10/10 - Configuración profesional
-- **Documentación**: 8/10 - Completa y clara
-
-### Tareas pendientes
-
-**Mejoras de seguridad (Media prioridad):**
-- [ ] Añadir validación de magic bytes en PDFs
-- [ ] Implementar rate limiting en login/upload
-- [ ] Configurar contraseña para Redis
-
-**Mejoras de producción (Alta prioridad):**
-- [ ] Configurar certificado SSL para Flower
-- [ ] Probar upload y procesamiento de PDF en producción
-- [ ] Configurar backups automáticos de PostgreSQL
-- [ ] Configurar monitoreo de errores (opcional: Sentry)
-
-**Mejoras de documentación (Baja prioridad):**
-- [ ] Crear screenshots para README
-- [ ] Añadir archivo CONTRIBUTING.md
-- [ ] Hacer consistentes placeholders en archivos .env.example
-
 ### Guía de despliegue en VPS
 
 Para desplegar en tu propio servidor con Traefik y SSL automático:
@@ -257,8 +210,8 @@ Para desplegar en tu propio servidor con Traefik y SSL automático:
 
 3. **Clonar y configurar**
    ```bash
-   git clone https://github.com/Jaolmos/presentation-gesture-pdf-mediapipe-django.git
-   cd presentation-gesture-pdf-mediapipe-django
+   git clone https://github.com/tu-usuario/tu-repositorio.git
+   cd tu-repositorio
 
    # Copiar y editar variables de entorno
    cp .env.production.example .env
