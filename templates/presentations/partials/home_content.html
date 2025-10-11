@@ -19,18 +19,8 @@
                             </div>
                         </div>
 
-                        <!-- Badge de estado moderno -->
-                        {% if presentation.is_converted %}
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                                Listo
-                            </span>
-                        {% else %}
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                                <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-                                Procesando
-                            </span>
-                        {% endif %}
+                        <!-- Badge de estado moderno con polling -->
+                        {% include 'presentations/partials/presentation_badge.html' %}
                     </div>
                 </div>
 

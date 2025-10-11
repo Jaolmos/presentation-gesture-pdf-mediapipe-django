@@ -46,6 +46,26 @@ class TestPresentationURLs(TestCase):
         assert resolved.func == views.upload_presentation_htmx
         assert resolved.view_name == 'presentations:upload_htmx'
 
+    def test_check_status_url_resolves(self):
+        """Test que URL check_status resuelve correctamente."""
+        url = reverse('presentations:check_status', kwargs={'pk': 1})
+        assert url == '/presentation/1/status/'
+
+        resolved = resolve(url)
+        assert resolved.func == views.check_presentation_status
+        assert resolved.view_name == 'presentations:check_status'
+        assert resolved.kwargs == {'pk': 1}
+
+    def test_check_badge_url_resolves(self):
+        """Test que URL check_badge resuelve correctamente."""
+        url = reverse('presentations:check_badge', kwargs={'pk': 1})
+        assert url == '/presentation/1/badge/'
+
+        resolved = resolve(url)
+        assert resolved.func == views.check_presentation_badge
+        assert resolved.view_name == 'presentations:check_badge'
+        assert resolved.kwargs == {'pk': 1}
+
     def test_presentation_detail_url_resolves(self):
         """Test que URL presentation_detail resuelve correctamente."""
         url = reverse('presentations:presentation_detail', kwargs={'pk': 1})
@@ -139,7 +159,7 @@ class TestPresentationURLs(TestCase):
     def test_url_patterns_count(self):
         """Test que hay el número correcto de URL patterns."""
         from apps.presentations.urls import urlpatterns
-        assert len(urlpatterns) == 12
+        assert len(urlpatterns) == 14
 
     def test_urls_with_different_pk_values(self):
         """Test URLs con diferentes valores de pk."""
