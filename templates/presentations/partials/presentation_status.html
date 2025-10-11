@@ -1,0 +1,28 @@
+<!-- Estado de procesamiento de la presentación -->
+<div id="presentation-status-{{ presentation.pk }}"
+     {% if presentation.processing_status == 'processing' %}
+     hx-get="{% url 'presentations:check_status' presentation.pk %}"
+     hx-trigger="every 2s"
+     hx-swap="outerHTML"
+     {% endif %}>
+    <div class="flex justify-between">
+        <span>Estado:</span>
+        {% if presentation.processing_status == 'completed' %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                ✓ Convertida
+            </span>
+        {% elif presentation.processing_status == 'processing' %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                ⏳ Procesando
+            </span>
+        {% elif presentation.processing_status == 'failed' %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                ✗ Error
+            </span>
+        {% else %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                ⏸ Pendiente
+            </span>
+        {% endif %}
+    </div>
+</div>

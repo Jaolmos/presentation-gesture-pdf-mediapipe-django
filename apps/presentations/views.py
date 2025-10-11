@@ -163,6 +163,30 @@ def upload_presentation_htmx(request):
 
 
 @login_required
+def check_presentation_status(request, pk):
+    """Vista HTMX para verificar el estado de procesamiento de una presentación"""
+    presentation = get_object_or_404(Presentation, pk=pk)
+
+    context = {
+        'presentation': presentation,
+    }
+
+    return render(request, 'presentations/partials/presentation_status.html', context)
+
+
+@login_required
+def check_presentation_badge(request, pk):
+    """Vista HTMX para verificar el estado y devolver badge actualizado"""
+    presentation = get_object_or_404(Presentation, pk=pk)
+
+    context = {
+        'presentation': presentation,
+    }
+
+    return render(request, 'presentations/partials/presentation_badge.html', context)
+
+
+@login_required
 def presentation_detail(request, pk):
     """Vista de detalle de una presentación"""
     presentation = get_object_or_404(Presentation, pk=pk)

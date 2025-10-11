@@ -35,16 +35,38 @@
                 <span>Tamaño:</span>
                 <span class="font-medium text-gray-900">{{ presentation.file_size_mb }} MB</span>
             </div>
-            <div class="flex justify-between">
-                <span>Estado:</span>
-                {% if presentation.is_converted %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                        ✓ Convertida
-                    </span>
+            <div id="presentation-status-{{ presentation.pk }}"
+                 hx-get="{% url 'presentations:check_status' presentation.pk %}"
+                 hx-trigger="every 2s"
+                 hx-swap="outerHTML">
+                {% if presentation.processing_status == 'completed' %}
+                    <div class="flex justify-between">
+                        <span>Estado:</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            ✓ Convertida
+                        </span>
+                    </div>
+                {% elif presentation.processing_status == 'processing' %}
+                    <div class="flex justify-between">
+                        <span>Estado:</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            ⏳ Procesando
+                        </span>
+                    </div>
+                {% elif presentation.processing_status == 'failed' %}
+                    <div class="flex justify-between">
+                        <span>Estado:</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            ✗ Error
+                        </span>
+                    </div>
                 {% else %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                        ⏳ Procesando
-                    </span>
+                    <div class="flex justify-between">
+                        <span>Estado:</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            ⏸ Pendiente
+                        </span>
+                    </div>
                 {% endif %}
             </div>
         </div>
