@@ -167,3 +167,6 @@ resumen.md
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# Videos de documentación (alojados en GitHub attachments)
+docs/videos/
