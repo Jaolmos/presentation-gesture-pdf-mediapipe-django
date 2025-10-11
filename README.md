@@ -33,10 +33,11 @@ SlideMotion es una aplicación web Django que permite controlar presentaciones P
 - WhiteNoise (servir archivos estáticos en producción)
 - Flower (monitoreo Celery)
 
-## Capturas de pantalla
+## Demo
 
-![Screenshot principal](docs/screenshots/home.png)
-![Modo presentación](docs/screenshots/presentation-mode.png)
+https://github.com/user-attachments/assets/demo.mp4
+
+> Video demostrativo del control de presentaciones mediante gestos de brazo
 
 ## Instalación y uso (Desarrollo)
 
