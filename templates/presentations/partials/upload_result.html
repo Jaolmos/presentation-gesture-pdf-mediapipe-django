@@ -37,7 +37,7 @@
             </div>
             <div id="presentation-status-{{ presentation.pk }}"
                  hx-get="{% url 'presentations:check_status' presentation.pk %}"
-                 hx-trigger="every 2s"
+                 hx-trigger="every 5s"
                  hx-swap="outerHTML">
                 {% if presentation.processing_status == 'completed' %}
                     <div class="flex justify-between">

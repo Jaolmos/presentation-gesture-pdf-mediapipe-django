@@ -2,7 +2,7 @@
 <div id="presentation-badge-{{ presentation.pk }}"
      {% if presentation.processing_status == 'processing' %}
      hx-get="{% url 'presentations:check_badge' presentation.pk %}"
-     hx-trigger="every 3s"
+     hx-trigger="every 5s"
      hx-swap="outerHTML"
      {% endif %}>
     {% if presentation.processing_status == 'completed' %}
