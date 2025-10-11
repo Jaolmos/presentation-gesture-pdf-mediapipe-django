@@ -35,7 +35,7 @@ SlideMotion es una aplicación web Django que permite controlar presentaciones P
 
 ## Demo
 
-https://github.com/user-attachments/assets/demo.mp4
+https://github.com/user-attachments/assets/d82dfa94-d5f9-4131-961f-ae89d5cee8c9
 
 > Video demostrativo del control de presentaciones mediante gestos de brazo
 
