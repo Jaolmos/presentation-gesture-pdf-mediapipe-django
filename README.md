@@ -1,6 +1,6 @@
 # SlideMotion 🎯
 
-SlideMotion es una aplicación web Django que permite controlar presentaciones PDF mediante gestos usando la cámara web, ideal para profesores, conferenciantes y presentadores que necesitan libertad de movimiento.
+SlideMotion es una aplicación web Django que permite controlar presentaciones PDF mediante gestos usando la cámara web. La idea es simple, levantas el brazo derecho para avanzar al siguiente slide, y el brazo izquierdo para retroceder.
 
 ## Características
 
