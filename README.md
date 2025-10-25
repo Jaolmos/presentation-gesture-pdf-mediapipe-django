@@ -67,20 +67,20 @@ nano .env
 
 ```bash
 # Construir e iniciar todos los servicios
-docker-compose up -d
+docker compose up -d
 
 # Ver logs en tiempo real
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### Ejecutar migraciones y crear superusuario
 
 ```bash
 # Aplicar migraciones de base de datos
-docker-compose exec web python manage.py migrate
+docker compose exec web python manage.py migrate
 
 # Crear superusuario para acceder al panel de administración
-docker-compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py createsuperuser
 ```
 
 Sigue las instrucciones para crear tu cuenta de administrador (nombre de usuario, email y contraseña).
@@ -106,24 +106,24 @@ Accede con las credenciales del superusuario que creaste anteriormente.
 
 ```bash
 # Ver logs de un servicio específico
-docker-compose logs web -f
-docker-compose logs celery -f
+docker compose logs web -f
+docker compose logs celery -f
 
 # Reiniciar un servicio
-docker-compose restart web
+docker compose restart web
 
 # Ejecutar comandos Django
-docker-compose exec web python manage.py shell
-docker-compose exec web python manage.py collectstatic
+docker compose exec web python manage.py shell
+docker compose exec web python manage.py collectstatic
 
 # Ejecutar tests
-docker-compose exec web python -m pytest
+docker compose exec web python -m pytest
 
 # Parar todos los servicios
-docker-compose down
+docker compose down
 
 # Parar y eliminar volúmenes (borra datos)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Servicios Docker
@@ -142,23 +142,23 @@ La aplicación utiliza los siguientes servicios en desarrollo:
 ## Desarrollo Frontend
 
 ```bash
-# El watcher de Tailwind se ejecuta automáticamente con docker-compose up
+# El watcher de Tailwind se ejecuta automáticamente con docker compose up
 
 # Si necesitas compilar CSS manualmente:
-docker-compose exec web python manage.py tailwind build
+docker compose exec web python manage.py tailwind build
 ```
 
 ## Tests
 
 ```bash
 # Ejecutar todos los tests
-docker-compose exec web python -m pytest
+docker compose exec web python -m pytest
 
 # Ejecutar tests con cobertura
-docker-compose exec web python -m pytest --cov=apps.presentations
+docker compose exec web python -m pytest --cov=apps.presentations
 
 # Ejecutar tests específicos
-docker-compose exec web python -m pytest apps/presentations/tests/test_models.py -v
+docker compose exec web python -m pytest apps/presentations/tests/test_models.py -v
 ```
 
 ## Estructura del proyecto
